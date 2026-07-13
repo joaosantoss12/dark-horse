@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dark Horse</title>
+    <meta name="description" content="Three cards. Last digit wins." />
+
+    <!-- Open the connection to Supabase while the bundle is still downloading,
+         so the first query does not have to pay for DNS + TCP + TLS (~80ms here). -->
+    <link rel="preconnect" href="https://uzjckknxhfyqzpyamsum.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://uzjckknxhfyqzpyamsum.supabase.co" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

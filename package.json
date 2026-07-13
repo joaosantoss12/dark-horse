@@ -1,0 +1,33 @@
+{
+  "name": "dark-horse",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "migrate": "node scripts/migrate.mjs",
+    "test": "npm run test:game && npm run test:security && npm run test:profile && npm run test:realtime",
+    "test:game": "node scripts/test-game.mjs",
+    "test:security": "node scripts/test-security.mjs",
+    "test:profile": "node scripts/test-profile.mjs",
+    "test:realtime": "node scripts/test-realtime.mjs",
+    "bench": "node scripts/bench.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}

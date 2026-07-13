@@ -1,0 +1,16 @@
+node_modules/
+dist/
+
+# Secrets. .env.local holds the database password and must never be committed.
+.env
+.env.*
+!.env.example
+
+# The archived Telegram bot: contains a live bot token and a 54MB binary.
+TELEGRAM BOT - NOT USED/
+cloudflared.exe
+
+*.log
+.DS_Store
+.vercel
+tsconfig.tsbuildinfo
