@@ -10,6 +10,7 @@ interface RoomRow {
   buy_in: number;
   prizes: number[];
   is_active: boolean;
+  rounds_played: number;
 }
 
 interface RoomForm {
@@ -147,6 +148,7 @@ function Tables() {
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [editing, setEditing] = useState<RoomForm | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(() => {
     api.admin
@@ -157,9 +159,35 @@ function Tables() {
 
   useEffect(load, [load]);
 
+  // The confirmation has to say what will actually happen, and that depends on
+  // whether the table has been played.
+  const remove = async (room: RoomRow) => {
+    const played = Number(room.rounds_played);
+
+    const warning = played
+      ? `"${room.name}" has ${played} hand${played === 1 ? '' : 's'} of history.\n\n` +
+        'It will be retired: removed from the lobby and from this list, but its ' +
+        'rounds stay in the database so History and the ledger still make sense. ' +
+        'Deleting them outright would erase the record behind every prize ever ' +
+        'paid at this table.\n\nRetire it?'
+      : `"${room.name}" has never been played, so it will be deleted outright.\n\nDelete it?`;
+
+    if (!window.confirm(warning)) return;
+
+    setError(null);
+    try {
+      const result = await api.admin.deleteRoom(room.id);
+      setNotice(result.deleted ? 'Table deleted.' : `Table retired. ${result.rounds} hands kept.`);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not remove that table.');
+    }
+  };
+
   return (
     <>
       {error && <div className="error">{error}</div>}
+      {notice && <div className="notice">{notice}</div>}
 
       {editing ? (
         <RoomEditor
@@ -185,6 +213,7 @@ function Tables() {
               </div>
               <div className="row-sub">
                 {room.seats} seats · buy-in {room.buy_in} · prizes {room.prizes.join(' / ')}
+                {Number(room.rounds_played) > 0 && ` · ${room.rounds_played} played`}
               </div>
             </div>
             <button
@@ -201,6 +230,9 @@ function Tables() {
               }
             >
               Edit
+            </button>
+            <button className="btn btn-ghost btn-sm danger" onClick={() => void remove(room)}>
+              Delete
             </button>
           </div>
         ))}

@@ -266,12 +266,17 @@ export const api = {
       return unwrap(await supabase.rpc('dh_admin_set_banned', { p_user_id: userId, p_banned: banned }));
     },
     async rooms() {
-      const { data, error } = await supabase
-        .from('rooms')
-        .select('id, name, seats, buy_in, prizes, is_active, sort_order')
-        .order('sort_order');
-      if (error) throw new Error(clean(error.message));
-      return data ?? [];
+      return unwrap(await supabase.rpc('dh_admin_rooms')) ?? [];
+    },
+    /**
+     * Removes a table. One that has never been played is deleted outright; one
+     * with history is retired instead, because deleting it would cascade and
+     * take every hand ever dealt there with it.
+     */
+    async deleteRoom(id: number) {
+      return unwrap<{ deleted: boolean; rounds: number }>(
+        await supabase.rpc('dh_admin_delete_room', { p_room_id: id }),
+      );
     },
     async saveRoom(room: {
       id: number | null;
