@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 
+import { HowToPlay } from '../components/HowToPlay';
+import { Modal } from '../components/Modal';
 import { HorseMark } from '../components/icons';
 import { setRemember, supabase } from '../lib/supabase';
 
@@ -12,6 +14,7 @@ export function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -122,19 +125,29 @@ export function AuthPage() {
           </button>
         </form>
 
-        <button
-          className="link"
-          onClick={() => {
-            setMode(mode === 'signin' ? 'signup' : 'signin');
-            setError(null);
-            setNotice(null);
-          }}
-        >
-          {mode === 'signin'
-            ? 'New here? Create an account — 1,000 points to start.'
-            : 'Already have an account? Sign in.'}
-        </button>
+        <div className="auth-alt">
+          <button
+            className="btn btn-ghost btn-block"
+            onClick={() => {
+              setMode(mode === 'signin' ? 'signup' : 'signin');
+              setError(null);
+              setNotice(null);
+            }}
+          >
+            {mode === 'signin' ? 'Create an account' : 'Sign in instead'}
+          </button>
+
+          <button className="btn btn-ghost btn-block" onClick={() => setShowRules(true)}>
+            How it works
+          </button>
+        </div>
       </div>
+
+      {showRules && (
+        <Modal title="🐎 How to play" onClose={() => setShowRules(false)}>
+          <HowToPlay />
+        </Modal>
+      )}
     </div>
   );
 }

@@ -94,14 +94,22 @@ console.log('\nTiebreaks');
     await equal(hand('9S', '5D', '2C'), hand('9H', '5C', '2D')));
 }
 
-console.log('\nA real dealt round (4 seats, bots)');
+console.log('\nDeal values (a round is worth a number now)');
 {
-  // Fresh room so the test never collides with a live table.
+  const val = async (...c) => (await one(`SELECT dh_deal_value($1::jsonb) AS v`, [hand(...c)])).v;
+  check('a normal hand is worth its score', (await val('4H', '2C', '3D')) === 9);
+  check('a score of 0 is worth 0', (await val('AS', '9D', 'QC')) === 0);
+  check('a Crown is worth 11 -- more than any score', (await val('KS', 'QD', 'JC')) === 11);
+  check('Three of a Kind is worth 12 -- more than a Crown', (await val('2S', '2D', '2C')) === 12);
+  check('the best possible total is 36', (await val('KS', 'KD', 'KC')) * 3 === 36);
+}
+
+console.log('\nA real dealt hand: three deals, then the winner');
+{
   const room = await one(
     `INSERT INTO rooms (name, seats, buy_in, prizes, sort_order)
      VALUES ('TEST', 4, 100, ARRAY[250,100]::bigint[], 99) RETURNING id`,
   );
-
   await db.query(
     `INSERT INTO seats (room_id, seat_index, bot_name)
      SELECT $1, i, 'Bot ' || i FROM generate_series(0, 3) i`,
@@ -109,62 +117,85 @@ console.log('\nA real dealt round (4 seats, bots)');
   );
 
   const roundId = (await one(`SELECT dh_deal($1) AS id`, [room.id])).id;
-  check('a full table deals a round', roundId !== null);
+  check('a full table deals a hand', roundId !== null);
 
   const hands = (await db.query(
-    `SELECT seat_index, cards, total, score, place, won FROM round_hands
-      WHERE round_id = $1 ORDER BY place`,
-    [roundId],
+    `SELECT deal_no, seat_index, cards, score, value FROM round_hands
+      WHERE round_id = $1 ORDER BY deal_no, seat_index`, [roundId],
   )).rows;
 
-  check('every seat got a hand', hands.length === 4);
+  check('4 players x 3 deals = 12 hands dealt', hands.length === 12);
   check('every hand is 3 cards', hands.every((h) => h.cards.length === 3));
+  check('there are exactly 3 deals', new Set(hands.map((h) => h.deal_no)).size === 3);
 
-  const dealt = hands.flatMap((h) => h.cards.map((c) => `${c.r}${c.s}`));
-  check('no card was dealt twice', new Set(dealt).size === 12, `saw ${new Set(dealt).size}/12 unique`);
+  // One deck cannot serve 8 players x 9 cards, so each deal is its own shuffle:
+  // never a repeat WITHIN a deal; repeats across deals are expected.
+  for (const dealNo of [1, 2, 3]) {
+    const cards = hands.filter((h) => h.deal_no === dealNo)
+      .flatMap((h) => h.cards.map((c) => `${c.r}${c.s}`));
+    check(`deal ${dealNo} never repeats a card`, new Set(cards).size === cards.length);
+  }
 
-  check('places run 1..4', hands.map((h) => h.place).join() === '1,2,3,4');
+  const players = (await db.query(
+    `SELECT seat_index, total_value, place, won FROM round_players
+      WHERE round_id = $1 ORDER BY place`, [roundId],
+  )).rows;
 
-  // Bots never get paid, so the prizes are recorded as zero.
-  check('bots are not paid a prize', hands.every((h) => Number(h.won) === 0));
+  check('every seat gets a final placing', players.length === 4);
+  check('places run 1..4', players.map((p) => p.place).join() === '1,2,3,4');
 
-  // Hidden until the dealer turns them over.
-  const early = await one(`SELECT dh_get_room($1) AS r`, [room.id]);
-  const countdown = early.r;
+  // The whole point of the new format.
+  let sumsMatch = true;
+  for (const p of players) {
+    const mine = hands.filter((h) => h.seat_index === p.seat_index);
+    if (mine.reduce((a, h) => a + h.value, 0) !== p.total_value) sumsMatch = false;
+  }
+  check('each total is the sum of that player\'s three deals', sumsMatch);
+
+  const totals = players.map((p) => p.total_value);
+  check('the highest total is placed first',
+    totals.every((t, i) => i === 0 || totals[i - 1] >= t), totals.join(' >= '));
+
+  check('bots are not paid a prize', players.every((p) => Number(p.won) === 0));
+
+  const countdown = (await one(`SELECT dh_get_room($1) AS r`, [room.id])).r;
   check('during the countdown the phase is countdown', countdown.phase === 'countdown');
-  check('during the countdown no card is visible',
-    countdown.players.every((p) => p.cards.every((c) => c === null)),
-    JSON.stringify(countdown.players[0]?.cards));
-  check('during the countdown no score is leaked',
-    countdown.players.every((p) => p.score === null && p.total === null));
+  check('during the countdown not one card of any deal is visible',
+    countdown.players.every((p) => p.deals.every((d) => d.cards.every((c) => c === null))));
+  check('during the countdown no deal score is leaked',
+    countdown.players.every((p) => p.deals.every((d) => d.score === null)));
 
-  console.log('  ...waiting out the reveal');
-  await new Promise((r) => setTimeout(r, 4200)); // past card 1, before results
+  console.log('  ...watching the three deals go by');
+  // The 3s countdown comes first, then deal n runs from dealt_at + (n-1)*6.8s.
+  // 12s after dealing => ~9s elapsed => deal 2 is on the table.
+  await new Promise((r) => setTimeout(r, 12_000));
 
   const mid = (await one(`SELECT dh_get_room($1) AS r`, [room.id])).r;
-  check('mid-deal, only the turned cards are visible',
-    mid.phase === 'dealing' && mid.revealed >= 1 && mid.revealed < 3 &&
-    mid.players.every((p) => p.cards.filter(Boolean).length === mid.revealed),
-    `phase=${mid.phase} revealed=${mid.revealed}`);
-  check('mid-deal, the score is still hidden', mid.players.every((p) => p.score === null));
+  check('the table moves on to deal 2', mid.deal === 2, `deal=${mid.deal} phase=${mid.phase}`);
+  check('deal 1 is face up and scored',
+    mid.players.every((p) => p.deals[0].cards.every((c) => c !== null) && p.deals[0].score !== null));
+  check('deal 3 is still face down',
+    mid.players.every((p) => p.deals[2].cards.every((c) => c === null)));
+  check('deal 3 has leaked no score', mid.players.every((p) => p.deals[2].score === null));
+  check('the running total counts only the deals already scored',
+    mid.players.every((p) => p.totalValue ===
+      p.deals.filter((d) => d.value !== null).reduce((a, d) => a + d.value, 0)));
 
-  await new Promise((r) => setTimeout(r, 3500)); // past settle_at
+  console.log('  ...waiting for the final reveal');
+  // settle_at is dealt_at + 20.4s, i.e. ~23.4s after the deal was made.
+  await new Promise((r) => setTimeout(r, 14_000));
 
   const done = (await one(`SELECT dh_get_room($1) AS r`, [room.id])).r;
-  check('after the reveal, the phase is results', done.phase === 'results', done.phase);
-  check('after the reveal, all three cards are up',
-    done.players.every((p) => p.cards.filter(Boolean).length === 3));
-  check('after the reveal, scores are shown', done.players.every((p) => p.score !== null));
+  check('after three deals the phase is results', done.phase === 'results', done.phase);
+  check('every card of all three deals is up',
+    done.players.every((p) => p.deals.every((d) => d.cards.every((c) => c !== null))));
+  check('final placings are shown', done.players.every((p) => p.place !== null));
 
   const settled = await one(`SELECT settled_at, pot, paid_out FROM rounds WHERE id = $1`, [roundId]);
-  check('the round settled itself on the next call', settled.settled_at !== null);
-  check('an all-bot table has a pot of 0', Number(settled.pot) === 0, `pot=${settled.pot}`);
-  check('an all-bot table pays out 0', Number(settled.paid_out) === 0);
-
-  const ledgerRows = await one(
-    `SELECT COUNT(*)::int AS n FROM ledger WHERE round_id = $1`, [roundId],
-  );
-  check('bots wrote nothing to the ledger', ledgerRows.n === 0);
+  check('the hand settled itself', settled.settled_at !== null);
+  check('an all-bot table has a pot of 0', Number(settled.pot) === 0);
+  check('bots wrote nothing to the ledger',
+    (await one(`SELECT COUNT(*)::int AS n FROM ledger WHERE round_id = $1`, [roundId])).n === 0);
 
   await db.query(`DELETE FROM rooms WHERE id = $1`, [room.id]);
 }

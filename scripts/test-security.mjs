@@ -132,30 +132,40 @@ console.log('\nReading cards they should not see');
   const balance = (await db.query('SELECT balance FROM profiles WHERE id = $1', [userId])).rows[0];
   check('joining took the buy-in', Number(balance.balance) === 900, `balance ${balance.balance}`);
 
-  // The cards exist in the database right now. Can the browser read them?
+  // The cards for all three deals exist in the database right now. Can the
+  // browser read them?
   const { data: rows } = await cheat.from('round_hands').select('*');
   check('cannot read the dealt cards from the table directly', (rows ?? []).length === 0,
     `read ${rows?.length ?? 0} hands!`);
 
-  // And through the sanctioned route, during the countdown?
-  const { data: view } = await cheat.rpc('dh_get_room', { p_room_id: room.id });
-  const anyCardVisible = view.players.some((p) => p.cards.some((c) => c !== null));
-  check('the room view hides every card before the reveal', !anyCardVisible,
-    JSON.stringify(view.players[0]?.cards));
-  check('the room view hides the scores before the reveal',
-    view.players.every((p) => p.score === null && p.place === null));
+  const { data: placings } = await cheat.from('round_players').select('*');
+  check('cannot read the placings and prizes before the reveal',
+    (placings ?? []).length === 0, `read ${placings?.length ?? 0} rows!`);
 
-  console.log('  ...waiting out the reveal');
-  await new Promise((r) => setTimeout(r, 9000));
+  // And through the sanctioned route, during the countdown? All three deals are
+  // already sitting in the database at this point -- none may be visible.
+  const { data: view } = await cheat.rpc('dh_get_room', { p_room_id: room.id });
+  const anyCardVisible = view.players.some((p) =>
+    p.deals.some((d) => d.cards.some((c) => c !== null)),
+  );
+  check('the room view hides every card of every deal before the reveal', !anyCardVisible,
+    JSON.stringify(view.players[0]?.deals));
+  check('the room view hides the scores before the reveal',
+    view.players.every((p) => p.deals.every((d) => d.score === null) && p.place === null));
+
+  console.log('  ...waiting out the three deals');
+  // 3s countdown + 3 deals x 6.8s = 23.4s before the hand settles.
+  await new Promise((r) => setTimeout(r, 26_000));
 
   const { data: done } = await cheat.rpc('dh_get_room', { p_room_id: room.id });
-  check('after the reveal, the cards are shown',
-    done.phase === 'results' && done.players.every((p) => p.cards.every((c) => c !== null)),
+  check('after the final deal, every card is shown',
+    done.phase === 'results' &&
+      done.players.every((p) => p.deals.every((d) => d.cards.every((c) => c !== null))),
     `phase=${done.phase}`);
 
   const settled = (await db.query(
-    `SELECT r.settled_at, r.pot, r.paid_out, h.won, h.place
-       FROM rounds r JOIN round_hands h ON h.round_id = r.id AND h.user_id = $1
+    `SELECT r.settled_at, r.pot, r.paid_out, rp.won, rp.place
+       FROM rounds r JOIN round_players rp ON rp.round_id = r.id AND rp.user_id = $1
       WHERE r.room_id = $2`, [userId, room.id],
   )).rows[0];
   check('the round settled itself', settled.settled_at !== null);

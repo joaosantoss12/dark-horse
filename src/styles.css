@@ -530,3 +530,223 @@ img.avatar { object-fit: cover; }
 }
 
 .sign-out-row { margin-top: 22px; display: flex; justify-content: center; }
+
+/* ---------- the poker table ---------- */
+.pt {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 10 / 9;
+  max-width: 620px;
+  margin: 6px auto 0;
+}
+
+.pt-felt {
+  position: absolute; inset: 13% 9%;
+  border-radius: 50%;
+  background:
+    radial-gradient(60% 55% at 50% 40%, #1c4a38 0%, var(--felt) 45%, var(--felt-2) 100%);
+  box-shadow:
+    inset 0 0 60px rgba(0, 0, 0, 0.45),
+    0 24px 60px rgba(0, 0, 0, 0.45);
+  border: 8px solid #3a2c1c;
+  outline: 1px solid #56422a;
+}
+/* The padded leather rail that runs around the edge of a real table. */
+.pt-rail {
+  position: absolute; inset: -8px;
+  border-radius: 50%;
+  border: 8px solid transparent;
+  background: linear-gradient(160deg, #4a3925, #2b2116) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.pt-centre {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 4px; padding: 10px;
+}
+.pt-status {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gold-soft); opacity: 0.85;
+}
+.pt-headline { font-size: 22px; font-weight: 800; }
+.pt-sub { font-size: 12px; color: rgba(245, 239, 230, 0.66); }
+.pt .countdown { font-size: 40px; }
+
+/* Three pips: which deal we are on. */
+.pt-pips { display: flex; gap: 6px; margin: 4px 0 2px; }
+.pt-pip {
+  width: 22px; height: 4px; border-radius: 2px;
+  background: rgba(255, 255, 255, 0.16);
+}
+.pt-pip.done { background: var(--gold); opacity: 0.55; }
+.pt-pip.on { background: var(--gold-soft); box-shadow: 0 0 8px rgba(240, 205, 140, 0.6); }
+
+/* ---------- seats around the table ---------- */
+.pt-seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  width: 116px;
+}
+.pt-hand { display: flex; gap: 3px; }
+
+.pt-chair {
+  width: 100%;
+  background: rgba(12, 11, 9, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 6px 8px;
+  backdrop-filter: blur(4px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.pt-seat.you .pt-chair {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(212, 162, 76, 0.35), 0 0 18px rgba(212, 162, 76, 0.25);
+}
+.pt-seat.winner .pt-chair {
+  border-color: var(--win);
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.3);
+}
+.pt-empty .pt-chair {
+  border-style: dashed; opacity: 0.4;
+  display: grid; place-items: center; min-height: 44px;
+  font-size: 11px; color: var(--muted);
+}
+
+.pt-who { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.pt-avatar {
+  width: 20px; height: 20px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; object-fit: cover;
+  background: #2b2620; color: var(--gold-soft); font-size: 10px; font-weight: 700;
+}
+.pt-name {
+  font-size: 11px; font-weight: 600; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pt-medal { margin-left: auto; font-size: 13px; }
+
+/* One chip per deal, plus the running total. */
+.pt-deals { display: flex; align-items: center; gap: 3px; margin-top: 5px; }
+.pt-chip {
+  flex: 1; text-align: center;
+  font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums;
+  padding: 2px 0; border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05); color: var(--muted);
+}
+.pt-chip.on { background: rgba(212, 162, 76, 0.16); color: var(--gold-soft); }
+.pt-chip.special { background: var(--gold); color: #2a1d08; }
+.pt-total {
+  min-width: 26px; text-align: center;
+  font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--text);
+  border-left: 1px solid var(--line); padding-left: 5px; margin-left: 2px;
+}
+.pt-won {
+  margin-top: 4px; font-size: 12px; font-weight: 800; color: var(--win);
+  display: flex; align-items: center; gap: 5px;
+}
+.pt-won.zero { color: rgba(245, 239, 230, 0.3); }
+
+.table-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.table-head .back { margin: 0; width: auto; }
+.table-title { font-weight: 800; font-size: 17px; margin-left: auto; }
+
+@media (max-width: 640px) {
+  .pt { aspect-ratio: 3 / 4; max-width: none; }
+  .pt-felt { inset: 10% 4%; }
+  .pt-seat { width: 92px; gap: 3px; }
+  .pt-chair { padding: 5px 6px; border-radius: 9px; }
+  .pt-name { font-size: 10px; }
+  .pt-chip { font-size: 10px; }
+  .pt .countdown { font-size: 32px; }
+  .pt-headline { font-size: 18px; }
+  .pt-hand .pc { width: 22px; height: 31px; }
+  .pt-hand .pc-rank { font-size: 10px; }
+  .pt-hand .pc-suit { font-size: 8px; }
+}
+
+/* ---------- how to play ---------- */
+.rule-block { margin-bottom: 22px; }
+.rule-block:last-child { margin-bottom: 0; }
+.rule-block h3 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--gold-soft); margin-bottom: 8px;
+}
+.rule-block p { font-size: 14px; margin-bottom: 8px; }
+.rule-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.rule-list li {
+  font-size: 14px; padding-left: 14px; position: relative;
+}
+.rule-list li::before {
+  content: ''; position: absolute; left: 0; top: 8px;
+  width: 5px; height: 5px; border-radius: 50%; background: var(--gold);
+}
+.rule-examples { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.rule-example {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px;
+}
+.rule-maths { font-size: 13px; font-variant-numeric: tabular-nums; }
+.rule-maths b { color: var(--gold-soft); }
+.special {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--line);
+}
+.special:last-child { border-bottom: 0; }
+.special-name { font-weight: 700; font-size: 14px; }
+.special-note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ---------- modal ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 80;
+  background: rgba(8, 7, 6, 0.72);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fade-in 0.18s ease;
+}
+.modal {
+  width: 100%; max-width: 480px; max-height: 86vh;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, var(--ink-2), #171412);
+  border: 1px solid var(--line); border-radius: 16px;
+  animation: modal-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+@keyframes modal-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } }
+.modal-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 18px; border-bottom: 1px solid var(--line);
+}
+.modal-title { font-weight: 800; font-size: 16px; letter-spacing: 0.04em; }
+.modal-head .icon-btn { margin-left: auto; }
+.modal-body { padding: 18px; overflow-y: auto; }
+
+.how-btn { margin-top: 10px; }
+
+/* ---------- history: a hand is three deals now ---------- */
+.history-row { padding: 13px 0; border-bottom: 1px solid var(--line); }
+.history-row:last-child { border-bottom: 0; }
+.history-top { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.history-top .row-title { flex: 1; min-width: 0; display: block; }
+.history-top .row-sub { display: inline; }
+.history-deals { display: flex; flex-direction: column; gap: 5px; }
+.history-deal { display: flex; align-items: center; gap: 8px; }
+.history-deal-no {
+  width: 16px; text-align: center; flex: none;
+  font-size: 10px; font-weight: 800; color: var(--muted);
+}
+.history-value {
+  margin-left: auto; flex: none;
+  font-size: 12px; font-weight: 800; color: var(--gold-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.auth-alt {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);
+}

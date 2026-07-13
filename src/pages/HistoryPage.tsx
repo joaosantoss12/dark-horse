@@ -8,11 +8,11 @@ interface Played {
   played_at: string;
   room: string;
   buy_in: number;
-  cards: Card[];
-  score: number;
+  total_value: number;
   place: number;
   won: number;
   net: number;
+  deals: { cards: Card[]; score: number; value: number }[];
 }
 
 interface Leader {
@@ -40,23 +40,39 @@ export function HistoryPage() {
         {rounds?.length === 0 && <div className="muted">You have not played a hand yet.</div>}
 
         {rounds?.map((round) => (
-          <div key={round.round_id} className="row">
-            <div className="hand hand-sm">
-              {round.cards.map((card, i) => (
-                <span key={i} className={`card-chip ${card.s === 'H' || card.s === 'D' ? 'red' : ''}`}>
-                  {cardText(card)}
+          <div key={round.round_id} className="history-row">
+            <div className="history-top">
+              <div className="row-title">
+                Total <b className="gold">{round.total_value}</b>
+                <span className="row-sub">
+                  {' '}
+                  · {round.room} · {ORDINALS[round.place - 1] ?? `${round.place}th`} ·{' '}
+                  {new Date(round.played_at).toLocaleDateString()}
                 </span>
-              ))}
-            </div>
-            <div className="row-main">
-              <div className="row-title">Score {round.score}</div>
-              <div className="row-sub">
-                {round.room} · {ORDINALS[round.place - 1] ?? `${round.place}th`} ·{' '}
-                {new Date(round.played_at).toLocaleDateString()}
+              </div>
+              <div className={`amount ${round.net > 0 ? 'up' : round.net < 0 ? 'down' : ''}`}>
+                {round.net > 0 ? `+${round.net}` : round.net}
               </div>
             </div>
-            <div className={`amount ${round.net > 0 ? 'up' : round.net < 0 ? 'down' : ''}`}>
-              {round.net > 0 ? `+${round.net}` : round.net}
+
+            {/* The three deals that made up the hand. */}
+            <div className="history-deals">
+              {(round.deals ?? []).map((deal, i) => (
+                <div key={i} className="history-deal">
+                  <span className="history-deal-no">{i + 1}</span>
+                  <div className="hand hand-sm">
+                    {deal.cards.map((card, j) => (
+                      <span
+                        key={j}
+                        className={`card-chip ${card.s === 'H' || card.s === 'D' ? 'red' : ''}`}
+                      >
+                        {cardText(card)}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="history-value">{deal.value}</span>
+                </div>
+              ))}
             </div>
           </div>
         ))}

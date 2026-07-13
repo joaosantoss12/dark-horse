@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 
+import { HowToPlay } from '../components/HowToPlay';
+
 import { useTables } from '../lib/useRoom';
 import { useAuth } from '../lib/useAuth';
 import type { Room } from '../lib/api';
@@ -67,19 +69,8 @@ export function LobbyPage() {
       </div>
 
       <div className="section-title">How it works</div>
-      <div className="panel rules">
-        <p>
-          Three cards each, dealt face up. <b>A = 1</b>, 2–9 face value, <b>10 J Q K = 10</b>. Only
-          the last digit of your total counts, so 7 + 8 + K = 25 scores <b>5</b>.
-        </p>
-        <p>
-          <b>Three of a Kind</b> beats a <b>Crown</b> (K + Q + J), which beats any score. Ties break
-          on the highest card, then the second, then the third — an exact tie splits the prize.
-        </p>
-        <p className="muted">
-          A 4-seat table pays the top 2. An 8-seat table pays the top 4. When the last seat fills,
-          the dealer deals — no decisions, just the cards.
-        </p>
+      <div className="panel">
+        <HowToPlay />
       </div>
     </>
   );

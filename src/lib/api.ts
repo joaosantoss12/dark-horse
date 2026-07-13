@@ -7,17 +7,27 @@ export interface Card {
 
 export type Phase = 'waiting' | 'countdown' | 'dealing' | 'results';
 
+/** One of the three deals in a hand. */
+export interface Deal {
+  dealNo: number;
+  /** A card the dealer has not turned over yet arrives as null. */
+  cards: (Card | null)[];
+  /** Only set once this deal's third card is face up. */
+  score: number | null;
+  /** What the deal is worth: its score, or 11 for a Crown, 12 for Three of a Kind. */
+  value: number | null;
+  category: number | null;
+}
+
 export interface TablePlayer {
   seat: number;
   userId: string | null;
   name: string;
   avatarUrl: string | null;
   isBot: boolean;
-  /** A card the dealer has not turned over yet arrives as null. */
-  cards: (Card | null)[];
-  total: number | null;
-  score: number | null;
-  category: number | null;
+  deals: Deal[];
+  /** Running total of the deals scored so far. */
+  totalValue: number | null;
   place: number | null;
   won: number | null;
   isSplit: boolean | null;
@@ -30,6 +40,9 @@ export interface Room {
   buyIn: number;
   prizes: number[];
   phase: Phase;
+  /** Which of the three deals is on the table (1-3), or 0 while waiting. */
+  deal: number;
+  /** Cards turned over in the current deal (0-3). */
   revealed: number;
   players: TablePlayer[];
   startsInMs: number | null;
