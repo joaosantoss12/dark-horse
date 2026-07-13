@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
-import { HorseMark, SignOutIcon } from './components/icons';
+import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
 import { AuthProvider, useAuth } from './lib/useAuth';
 import { AdminPage } from './pages/AdminPage';
 import { AuthPage } from './pages/AuthPage';
@@ -12,11 +13,38 @@ import { TablePage } from './pages/TablePage';
 function Shell() {
   const { profile, signOut } = useAuth();
   const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Navigating is the whole point of the menu, so it must close when you do.
+  useEffect(() => setMenuOpen(false), [pathname]);
+
+  // Escape closes it, and the page behind must not scroll under the drawer.
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
 
   if (!profile) return null;
 
   const active = (path: string) =>
     path === '/' ? pathname === '/' || pathname.startsWith('/table') : pathname.startsWith(path);
+
+  const links = [
+    { to: '/', label: 'Play' },
+    { to: '/history', label: 'History' },
+    { to: '/profile', label: 'Profile' },
+    ...(profile.is_admin ? [{ to: '/admin', label: 'Admin' }] : []),
+  ];
 
   return (
     <>
@@ -30,18 +58,19 @@ function Shell() {
           </span>
         </Link>
 
+        {/* Desktop navigation. On phones this is replaced by the drawer below. */}
         <nav className="nav" aria-label="Main">
-          <Link to="/" className={`nav-link ${active('/') ? 'on' : ''}`}>
-            Play
-          </Link>
-          <Link to="/history" className={`nav-link ${active('/history') ? 'on' : ''}`}>
-            History
-          </Link>
-          {profile.is_admin && (
-            <Link to="/admin" className={`nav-link ${active('/admin') ? 'on' : ''}`}>
-              Admin
-            </Link>
-          )}
+          {links
+            .filter((l) => l.to !== '/profile')
+            .map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`nav-link ${active(link.to) ? 'on' : ''}`}
+              >
+                {link.label}
+              </Link>
+            ))}
         </nav>
 
         <div className="topbar-right">
@@ -62,11 +91,77 @@ function Shell() {
             )}
           </Link>
 
-          <button className="icon-btn" onClick={() => void signOut()} aria-label="Sign out">
+          <button className="icon-btn desktop-only" onClick={() => void signOut()} aria-label="Sign out">
             <SignOutIcon />
+          </button>
+
+          <button
+            className="icon-btn mobile-only"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+          >
+            <MenuIcon />
           </button>
         </div>
       </header>
+
+      {menuOpen && (
+        <div className="drawer-backdrop" onClick={() => setMenuOpen(false)}>
+          {/* The drawer itself swallows clicks so tapping inside does not close it. */}
+          <nav
+            id="mobile-menu"
+            className="drawer"
+            aria-label="Menu"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="drawer-head">
+              <div className="drawer-who">
+                {profile.avatar_url ? (
+                  <img className="avatar-top" src={profile.avatar_url} alt="" />
+                ) : (
+                  <span className="avatar-top">
+                    {profile.display_name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <div>
+                  <div className="drawer-name">{profile.display_name}</div>
+                  <div className="drawer-balance">
+                    {profile.balance.toLocaleString()} pts
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className="icon-btn"
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close menu"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            <div className="drawer-links">
+              {links.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`drawer-link ${active(link.to) ? 'on' : ''}`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Kept apart from the navigation: signing out by mis-tap is miserable. */}
+            <button className="drawer-signout" onClick={() => void signOut()}>
+              <SignOutIcon />
+              Sign out
+            </button>
+          </nav>
+        </div>
+      )}
 
       <main className="page">
         <Routes>
