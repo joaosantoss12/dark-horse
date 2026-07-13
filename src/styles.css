@@ -421,7 +421,7 @@ a { color: inherit; text-decoration: none; }
 .stat span {
   font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
 }
-.editor { margin-bottom: 6px; }
+.editor { display: flex; flex-direction: column; gap: 10px; min-width: min(100%, 560px); }
 .house-note {
   font-size: 13px; color: var(--muted); padding: 10px 12px; border-radius: 9px;
   background: rgba(212, 162, 76, 0.07); border: 1px solid var(--line); margin-bottom: 12px;
@@ -758,3 +758,72 @@ img.avatar { object-fit: cover; }
 
 .btn-ghost.danger { color: var(--lose); }
 .btn-ghost.danger:hover:not(:disabled) { border-color: var(--lose); background: rgba(248, 113, 113, 0.1); }
+
+/* The rules gate cannot be dismissed by clicking away -- it has one way out. */
+.modal-backdrop.gate { z-index: 100; }
+.modal-foot {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- game modes ---------- */
+.mode-section { margin-bottom: 26px; }
+.mode-head { display: flex; align-items: center; gap: 12px; }
+.mode-head .section-title { margin-bottom: 10px; }
+.hands-left {
+  margin-left: auto; margin-bottom: 10px;
+  font-size: 12px; color: var(--muted);
+  padding: 5px 10px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--panel);
+  white-space: nowrap;
+}
+.hands-left b { color: var(--gold-soft); font-variant-numeric: tabular-nums; }
+.hands-left.spent b { color: var(--lose); }
+.limit-notice { margin-bottom: 12px; }
+
+/* A real-money table looks different at a glance, so nobody sits down by
+   accident thinking it is free. */
+.table-card.cash {
+  background: linear-gradient(140deg, #2a2013, #1a1410);
+  border-color: #5a4526;
+}
+.table-card.locked { position: relative; cursor: not-allowed; }
+.table-card.locked:hover { transform: none; border-color: #5a4526; }
+.locked-veil {
+  position: absolute; inset: 0; z-index: 2;
+  display: grid; place-items: center;
+  background: rgba(10, 9, 8, 0.66);
+  backdrop-filter: blur(1px);
+  border-radius: 18px;
+}
+.locked-veil span {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gold-soft);
+  padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--gold); background: rgba(18, 16, 14, 0.9);
+}
+
+.field-note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+/* ---------- the card flip ---------- */
+/* Turns from the right edge towards the left, the way a dealer's thumb rolls a
+   card over, rather than spinning about its centre. Slower now, to match the
+   slower deal, with a slight overshoot so it lands with weight. */
+.pc-inner {
+  transform-origin: right center;
+  transition: transform 0.62s cubic-bezier(0.22, 1.1, 0.36, 1);
+}
+.pc.up .pc-inner { transform: rotateY(180deg); }
+
+/* A card that has just landed catches the light. */
+@keyframes card-land {
+  0%   { box-shadow: 0 0 0 0 rgba(240, 205, 140, 0); }
+  35%  { box-shadow: 0 0 14px 2px rgba(240, 205, 140, 0.5); }
+  100% { box-shadow: 0 0 0 0 rgba(240, 205, 140, 0); }
+}
+.pc.up .pc-face { animation: card-land 0.9s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-inner { transition: none; }
+  .pc.up .pc-face { animation: none; }
+}

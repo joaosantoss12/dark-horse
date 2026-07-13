@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
+import { RulesGate } from './components/RulesGate';
 import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
 import { AuthProvider, useAuth } from './lib/useAuth';
 import { AdminPage } from './pages/AdminPage';
@@ -203,6 +204,9 @@ function Gate() {
       </div>
     );
   }
+
+  // Nobody sees a table before they have seen the rules.
+  if (!profile.rules_accepted_at) return <RulesGate />;
 
   return <Shell />;
 }

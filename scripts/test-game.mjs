@@ -166,9 +166,9 @@ console.log('\nA real dealt hand: three deals, then the winner');
     countdown.players.every((p) => p.deals.every((d) => d.score === null)));
 
   console.log('  ...watching the three deals go by');
-  // The 3s countdown comes first, then deal n runs from dealt_at + (n-1)*6.8s.
-  // 12s after dealing => ~9s elapsed => deal 2 is on the table.
-  await new Promise((r) => setTimeout(r, 12_000));
+  // The 5s shuffle comes first, then deal n runs from dealt_at + (n-1)*10.4s.
+  // 18s after dealing => ~13s elapsed => deal 2 is on the table.
+  await new Promise((r) => setTimeout(r, 18_000));
 
   const mid = (await one(`SELECT dh_get_room($1) AS r`, [room.id])).r;
   check('the table moves on to deal 2', mid.deal === 2, `deal=${mid.deal} phase=${mid.phase}`);
@@ -182,8 +182,8 @@ console.log('\nA real dealt hand: three deals, then the winner');
       p.deals.filter((d) => d.value !== null).reduce((a, d) => a + d.value, 0)));
 
   console.log('  ...waiting for the final reveal');
-  // settle_at is dealt_at + 20.4s, i.e. ~23.4s after the deal was made.
-  await new Promise((r) => setTimeout(r, 14_000));
+  // settle_at is dealt_at + 31.2s, i.e. ~36.2s after the deal was made.
+  await new Promise((r) => setTimeout(r, 21_000));
 
   const done = (await one(`SELECT dh_get_room($1) AS r`, [room.id])).r;
   check('after three deals the phase is results', done.phase === 'results', done.phase);

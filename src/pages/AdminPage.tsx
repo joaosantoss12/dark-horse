@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { api } from '../lib/api';
+import { Modal } from '../components/Modal';
+import { api, type Mode } from '../lib/api';
 import { useAuth } from '../lib/useAuth';
 
 interface RoomRow {
@@ -10,6 +11,7 @@ interface RoomRow {
   buy_in: number;
   prizes: number[];
   is_active: boolean;
+  mode: Mode;
   rounds_played: number;
 }
 
@@ -20,9 +22,12 @@ interface RoomForm {
   buyIn: number;
   prizes: number[];
   isActive: boolean;
+  mode: Mode;
 }
 
-const blank: RoomForm = { id: null, name: '', seats: 4, buyIn: 100, prizes: [250, 100], isActive: true };
+const blank: RoomForm = {
+  id: null, name: '', seats: 4, buyIn: 100, prizes: [250, 100], isActive: true, mode: 'free',
+};
 
 /** A 4-seat table pays 2 places, an 8-seat table pays 4. Keep the form honest. */
 function resize(form: RoomForm, seats: number): RoomForm {
@@ -53,7 +58,7 @@ function RoomEditor({ initial, onDone }: { initial: RoomForm; onDone: () => void
   };
 
   return (
-    <div className="panel editor">
+    <div className="editor">
       {error && <div className="error">{error}</div>}
 
       <div className="field">
@@ -64,6 +69,24 @@ function RoomEditor({ initial, onDone }: { initial: RoomForm; onDone: () => void
           placeholder="Grandstand"
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
+      </div>
+
+      <div className="field">
+        <label>Mode</label>
+        <select
+          className="input"
+          value={form.mode}
+          onChange={(e) => setForm({ ...form, mode: e.target.value as Mode })}
+        >
+          <option value="free">Free — points, subject to the daily limit</option>
+          <option value="cash">Real money — locked until licensed</option>
+        </select>
+        {form.mode === 'cash' && (
+          <p className="field-note">
+            Real-money tables can be configured but cannot be joined: the database refuses to seat
+            anyone until the operator is licensed.
+          </p>
+        )}
       </div>
 
       <div className="grid-2">
@@ -166,10 +189,10 @@ function Tables() {
 
     const warning = played
       ? `"${room.name}" has ${played} hand${played === 1 ? '' : 's'} of history.\n\n` +
-        'It will be retired: removed from the lobby and from this list, but its ' +
-        'rounds stay in the database so History and the ledger still make sense. ' +
-        'Deleting them outright would erase the record behind every prize ever ' +
-        'paid at this table.\n\nRetire it?'
+      'It will be retired: removed from the lobby and from this list, but its ' +
+      'rounds stay in the database so History and the ledger still make sense. ' +
+      'Deleting them outright would erase the record behind every prize ever ' +
+      'paid at this table.\n\nRetire it?'
       : `"${room.name}" has never been played, so it will be deleted outright.\n\nDelete it?`;
 
     if (!window.confirm(warning)) return;
@@ -189,18 +212,23 @@ function Tables() {
       {error && <div className="error">{error}</div>}
       {notice && <div className="notice">{notice}</div>}
 
-      {editing ? (
-        <RoomEditor
-          initial={editing}
-          onDone={() => {
-            setEditing(null);
-            load();
-          }}
-        />
-      ) : (
-        <button className="btn btn-block" onClick={() => setEditing(blank)}>
-          + New table
-        </button>
+      <button className="btn btn-block" onClick={() => setEditing(blank)}>
+        + New table
+      </button>
+
+      {editing && (
+        <Modal
+          title={editing.id ? 'Edit table' : 'New table'}
+          onClose={() => setEditing(null)}
+        >
+          <RoomEditor
+            initial={editing}
+            onDone={() => {
+              setEditing(null);
+              load();
+            }}
+          />
+        </Modal>
       )}
 
       <div className="panel" style={{ marginTop: 14 }}>
@@ -209,6 +237,7 @@ function Tables() {
             <div className="row-main">
               <div className="row-title">
                 {room.name}
+                {room.mode === 'cash' && <span className="tag">Real money</span>}
                 {!room.is_active && <span className="tag muted-tag">Closed</span>}
               </div>
               <div className="row-sub">
@@ -226,6 +255,7 @@ function Tables() {
                   buyIn: room.buy_in,
                   prizes: room.prizes,
                   isActive: room.is_active,
+                  mode: room.mode,
                 })
               }
             >
@@ -340,7 +370,7 @@ export function AdminPage() {
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
-    void api.admin.stats().then(setStats).catch(() => {});
+    void api.admin.stats().then(setStats).catch(() => { });
   }, []);
 
   if (!profile?.is_admin) {

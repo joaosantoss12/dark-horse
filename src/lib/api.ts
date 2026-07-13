@@ -33,12 +33,15 @@ export interface TablePlayer {
   isSplit: boolean | null;
 }
 
+export type Mode = 'free' | 'cash';
+
 export interface Room {
   id: number;
   name: string;
   seats: number;
   buyIn: number;
   prizes: number[];
+  mode: Mode;
   phase: Phase;
   /** Which of the three deals is on the table (1-3), or 0 while waiting. */
   deal: number;
@@ -55,6 +58,17 @@ export interface Profile {
   balance: number;
   is_admin: boolean;
   is_banned: boolean;
+  /** Null until the player has seen and accepted the rules. */
+  rules_accepted_at: string | null;
+}
+
+export interface Limits {
+  freeHandsUsed: number;
+  freeHandsPerDay: number;
+  freeHandsLeft: number;
+  resetsAt: string;
+  /** Real money is off until the operator is licensed. */
+  cashEnabled: boolean;
 }
 
 export interface Stats {
@@ -169,7 +183,7 @@ export const api = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, balance, is_admin, is_banned')
+      .select('id, display_name, avatar_url, balance, is_admin, is_banned, rules_accepted_at')
       .eq('id', userId)
       .single();
 
@@ -179,6 +193,14 @@ export const api = {
 
   async stats(): Promise<Stats> {
     return unwrap(await supabase.rpc('dh_my_stats'));
+  },
+
+  async limits(): Promise<Limits> {
+    return unwrap(await supabase.rpc('dh_my_limits'));
+  },
+
+  async acceptRules(): Promise<string> {
+    return unwrap(await supabase.rpc('dh_accept_rules'));
   },
 
   async updateProfile(displayName: string, avatarUrl: string | null) {
@@ -285,6 +307,7 @@ export const api = {
       buyIn: number;
       prizes: number[];
       isActive: boolean;
+      mode: Mode;
     }) {
       return unwrap(
         await supabase.rpc('dh_admin_save_room', {
@@ -294,6 +317,15 @@ export const api = {
           p_buy_in: room.buyIn,
           p_prizes: room.prizes,
           p_is_active: room.isActive,
+          p_mode: room.mode,
+        }),
+      );
+    },
+    async setFreeHandsPerDay(n: number) {
+      return unwrap(
+        await supabase.rpc('dh_admin_set_setting', {
+          p_key: 'free_hands_per_day',
+          p_value: n,
         }),
       );
     },

@@ -154,8 +154,8 @@ console.log('\nReading cards they should not see');
     view.players.every((p) => p.deals.every((d) => d.score === null) && p.place === null));
 
   console.log('  ...waiting out the three deals');
-  // 3s countdown + 3 deals x 6.8s = 23.4s before the hand settles.
-  await new Promise((r) => setTimeout(r, 26_000));
+  // 5s shuffle + 3 deals x 10.4s = 36.2s before the hand settles.
+  await new Promise((r) => setTimeout(r, 39_000));
 
   const { data: done } = await cheat.rpc('dh_get_room', { p_room_id: room.id });
   check('after the final deal, every card is shown',
