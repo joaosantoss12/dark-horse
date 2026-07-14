@@ -24,7 +24,7 @@ function Countdown({ ms }: { ms: number }) {
 }
 
 /** What the dealer's spot in the middle of the table says. */
-function Dealer({ room, seated }: { room: Room; seated: boolean }) {
+function Dealer({ room, seated, youId }: { room: Room; seated: boolean; youId: string }) {
   if (room.phase === 'countdown' && room.startsInMs != null) {
     return (
       <>
@@ -56,32 +56,44 @@ function Dealer({ room, seated }: { room: Room; seated: boolean }) {
   }
 
   if (room.phase === 'results') {
-    // Who won, and how much -- in the middle of the table, where everyone is
-    // already looking. "Winners paid" on its own told nobody anything.
-    const winners = room.players
-      .filter((p) => (p.won ?? 0) > 0)
-      .sort((a, b) => (a.place ?? 99) - (b.place ?? 99));
+    // The FULL ranking, not just who was paid. Filtering on won > 0 hid the bots
+    // entirely -- they are ranked like everyone else but collect nothing -- so a
+    // bot taking 1st place left a gap above the human in 2nd, and the result read
+    // as nonsense.
+    const ranked = [...room.players].sort((a, b) => (a.place ?? 99) - (b.place ?? 99));
+    const paidPlaces = room.prizes.length;
 
     return (
       <>
         <div className="pt-status">Final</div>
 
-        {winners.length === 0 ? (
-          <div className="pt-headline">No winners</div>
-        ) : (
-          <div className="pt-winners">
-            {winners.map((player) => (
-              <div key={player.seat} className="pt-winner">
-                <span className="pt-winner-medal">
-                  {MEDALS[(player.place ?? 9) - 1] ?? player.place}
+        <div className="pt-winners">
+          {ranked.map((player) => {
+            const place = player.place ?? 9;
+            const inTheMoney = place <= paidPlaces;
+
+            return (
+              <div
+                key={player.seat}
+                className={`pt-winner ${inTheMoney ? 'paid' : ''} ${
+                  player.userId === youId ? 'you' : ''
+                }`}
+              >
+                <span className="pt-winner-medal">{MEDALS[place - 1] ?? place}</span>
+                <span className="pt-winner-name">
+                  {player.name}
+                  {player.isBot && <span className="tag bot">Bot</span>}
                 </span>
-                <span className="pt-winner-name">{player.name}</span>
                 <span className="pt-winner-total">{player.totalValue}</span>
-                <span className="pt-winner-won">{moneyGain(player.won)}</span>
+                <span className={`pt-winner-won ${player.isBot ? 'house' : ''}`}>
+                  {/* A bot in a prize place wins nothing -- the money stays with
+                      the house. Saying so is better than showing a blank. */}
+                  {player.isBot && inTheMoney ? 'house' : moneyGain(player.won)}
+                </span>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
 
         <div className="pt-sub">The table resets in a moment</div>
       </>
@@ -219,7 +231,7 @@ export function TablePage() {
       </div>
 
       <PokerTable room={room} youId={profile.id}>
-        <Dealer room={room} seated={seated} />
+        <Dealer room={room} seated={seated} youId={profile.id} />
       </PokerTable>
 
       {room.phase === 'results' && (
