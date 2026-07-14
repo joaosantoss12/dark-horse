@@ -1,13 +1,13 @@
 import { useState, type FormEvent } from 'react';
 
 import { HowToPlay } from '../components/HowToPlay';
-import { SUPPORT_URL, SupportLink, TelegramIcon } from '../components/Support';
+import { SupportLink } from '../components/Support';
 import { Modal } from '../components/Modal';
 import { HorseMark } from '../components/icons';
 import { setRemember, supabase } from '../lib/supabase';
 
 export function AuthPage() {
-  const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -83,114 +83,68 @@ export function AuthPage() {
             </div>
           )}
 
-          {mode !== 'forgot' && (
-            <div className="field">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                className="input"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-            </div>
-          )}
+          <div className="field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              className="input"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
 
-          {/* Asking for a reset link needs the email and nothing else. */}
-          {mode !== 'forgot' && (
-            <>
-              <div className="field">
-                <div className="label-row">
-                  <label htmlFor="password">Password</label>
-                  {mode === 'signin' && (
-                    <button
-                      type="button"
-                      className="link inline"
-                      onClick={() => {
-                        setMode('forgot');
-                        setError(null);
-                        setNotice(null);
-                      }}
-                    >
-                      Forgot your password?
-                    </button>
-                  )}
-                </div>
-                <input
-                  id="password"
-                  className="input"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                />
-              </div>
+          <div className="field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              className="input"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            />
+          </div>
 
-              <label className="check remember">
-                <input
-                  type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRememberChoice(e.target.checked)}
-                />
-                <span>
-                  Remember me
-                  <em>Stay signed in on this device. Leave off on a shared computer.</em>
-                </span>
-              </label>
-            </>
-          )}
+          <label className="check remember">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRememberChoice(e.target.checked)}
+            />
+            <span>
+              Remember me
+              <em>Stay signed in on this device. Leave off on a shared computer.</em>
+            </span>
+          </label>
 
-          {/* There is no mail sender, so we do not pretend to send one. A
-              locked-out player talks to a human, who resets them from the admin
-              panel. */}
-          {mode === 'forgot' && (
-            <div className="forgot-panel">
-              <p>
-                Message <b>@DH_Support</b> on Telegram with the email you signed up with, and we
-                will set you a new password straight away.
-              </p>
-              <a
-                className="btn btn-block"
-                href={SUPPORT_URL}
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                <TelegramIcon />
-                Message support on Telegram
-              </a>
-            </div>
-          )}
-
-          {mode !== 'forgot' && (
-            <button className="btn btn-block" disabled={busy} type="submit">
-              {busy ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Sign in'}
-            </button>
-          )}
+          <button className="btn btn-block" disabled={busy} type="submit">
+            {busy ? 'Please wait...' : mode === 'signup' ? 'Create account' : 'Sign in'}
+          </button>
         </form>
 
         <div className="auth-alt">
           <button
             className="btn btn-ghost btn-block"
             onClick={() => {
-              setMode(mode === 'forgot' ? 'signin' : mode === 'signin' ? 'signup' : 'signin');
+              setMode(mode === 'signin' ? 'signup' : 'signin');
               setError(null);
               setNotice(null);
             }}
           >
-            {mode === 'signin' ? 'Create an account' : 'Back to sign in'}
+            {mode === 'signin' ? 'Create an account' : 'Sign in instead'}
           </button>
 
-          {mode !== 'forgot' && (
-            <button className="btn btn-ghost btn-block" onClick={() => setShowRules(true)}>
-              How it works
-            </button>
-          )}
+          <button className="btn btn-ghost btn-block" onClick={() => setShowRules(true)}>
+            How it works
+          </button>
         </div>
 
-        {mode !== 'forgot' && <SupportLink />}
+        {/* There is no self-service password reset. Locked out? Support sorts it out. */}
+        <SupportLink />
       </div>
 
       {showRules && (

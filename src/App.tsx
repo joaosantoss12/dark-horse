@@ -10,7 +10,6 @@ import { AuthPage } from './pages/AuthPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { LobbyPage } from './pages/LobbyPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { TablePage } from './pages/TablePage';
 
 function Shell() {
@@ -203,13 +202,6 @@ function Shell() {
 
 function Gate() {
   const { profile, loading } = useAuth();
-  const { pathname } = useLocation();
-
-  // Someone following a reset link is signed in by a short-lived recovery
-  // session. They must be able to set a new password without being pushed
-  // through the rules gate or the lobby first.
-  if (pathname === '/reset') return <ResetPasswordPage />;
-
   // With a cached profile there is nothing to wait for: paint the app now and
   // let the fresh copy arrive underneath. The spinner is only for a genuinely
   // cold start.

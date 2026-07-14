@@ -839,13 +839,6 @@ img.avatar { object-fit: cover; }
 }
 .pt-seat { transition: transform 0.25s ease; }
 
-.label-row { display: flex; align-items: baseline; gap: 10px; }
-.label-row label { flex: 1; margin-bottom: 6px; }
-.link.inline {
-  display: inline; width: auto; margin: 0 0 6px; text-align: right;
-  font-size: 12px; white-space: nowrap;
-}
-.forgot-note { font-size: 13px; margin-bottom: 16px; }
 
 /* ---------- support ---------- */
 .support-link {
@@ -859,6 +852,3 @@ img.avatar { object-fit: cover; }
 .drawer-link.support { gap: 10px; color: var(--muted); }
 .drawer-link.support:active { background: rgba(255, 255, 255, 0.06); }
 
-.forgot-panel { display: flex; flex-direction: column; gap: 12px; }
-.forgot-panel p { font-size: 14px; color: var(--muted); }
-.forgot-panel b { color: var(--gold-soft); }

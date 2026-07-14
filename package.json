@@ -8,14 +8,13 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "migrate": "node scripts/migrate.mjs",
-    "test": "npm run test:game && npm run test:security && npm run test:profile && npm run test:realtime && npm run test:modes && npm run test:dealing && npm run test:password",
+    "test": "npm run test:game && npm run test:security && npm run test:profile && npm run test:realtime && npm run test:modes && npm run test:dealing",
     "test:game": "node scripts/test-game.mjs",
     "test:security": "node scripts/test-security.mjs",
     "test:profile": "node scripts/test-profile.mjs",
     "test:realtime": "node scripts/test-realtime.mjs",
     "test:modes": "node scripts/test-modes.mjs",
     "test:dealing": "node scripts/test-dealing.mjs",
-    "test:password": "node scripts/test-password.mjs",
     "bench": "node scripts/bench.mjs"
   },
   "dependencies": {
