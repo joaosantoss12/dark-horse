@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { SupportLink } from '../components/Support';
 import { HorseMark } from '../components/icons';
 import { supabase } from '../lib/supabase';
 
@@ -96,6 +97,8 @@ export function ResetPasswordPage() {
             {busy ? 'Saving…' : 'Set new password'}
           </button>
         </form>
+
+        <SupportLink label="Link not working? Contact support on Telegram" />
       </div>
     </div>
   );

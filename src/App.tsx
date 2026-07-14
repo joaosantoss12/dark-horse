@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { RulesGate } from './components/RulesGate';
+import { SUPPORT_URL, SupportLink, TelegramIcon } from './components/Support';
 import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
 import { AuthProvider, useAuth } from './lib/useAuth';
 import { AdminPage } from './pages/AdminPage';
@@ -76,6 +77,17 @@ function Shell() {
         </nav>
 
         <div className="topbar-right">
+          <a
+            className="icon-btn desktop-only"
+            href={SUPPORT_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Support on Telegram"
+            title="Support on Telegram"
+          >
+            <TelegramIcon />
+          </a>
+
           <div className="balance" title={`${profile.balance.toLocaleString()} points`}>
             <span className="balance-value">{profile.balance.toLocaleString()}</span>
             <span className="balance-unit">pts</span>
@@ -156,6 +168,16 @@ function Shell() {
               ))}
             </div>
 
+            <a
+              className="drawer-link support"
+              href={SUPPORT_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <TelegramIcon />
+              Support
+            </a>
+
             {/* Kept apart from the navigation: signing out by mis-tap is miserable. */}
             <button className="drawer-signout" onClick={() => void signOut()}>
               <SignOutIcon />
@@ -206,7 +228,8 @@ function Gate() {
       <div className="center">
         <div>
           <h2>Account suspended</h2>
-          <p className="muted">Contact an admin if you think this is a mistake.</p>
+          <p className="muted">If you think this is a mistake, talk to us.</p>
+          <SupportLink label="Contact support on Telegram" />
         </div>
       </div>
     );

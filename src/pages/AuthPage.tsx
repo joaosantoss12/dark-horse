@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 
 import { HowToPlay } from '../components/HowToPlay';
+import { SupportLink } from '../components/Support';
 import { Modal } from '../components/Modal';
 import { HorseMark } from '../components/icons';
 import { setRemember, supabase } from '../lib/supabase';
@@ -39,7 +40,10 @@ export function AuthPage() {
 
         // Deliberately the same message whether or not that address has an
         // account: otherwise this form tells a stranger who is registered here.
-        setNotice('If that email has an account, a reset link is on its way.');
+        setNotice(
+          'If that email has an account, a reset link is on its way. ' +
+            'Not arriving? Message support on Telegram and we will sort it out.',
+        );
       } else if (mode === 'signup') {
         if (password.length < 8) throw new Error('Use at least 8 characters for your password.');
 
@@ -188,6 +192,8 @@ export function AuthPage() {
             </button>
           )}
         </div>
+
+        <SupportLink />
       </div>
 
       {showRules && (

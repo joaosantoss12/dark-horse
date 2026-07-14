@@ -846,3 +846,15 @@ img.avatar { object-fit: cover; }
   font-size: 12px; white-space: nowrap;
 }
 .forgot-note { font-size: 13px; margin-bottom: 16px; }
+
+/* ---------- support ---------- */
+.support-link {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  margin-top: 18px; padding: 10px;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  border-radius: 10px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.support-link:hover { color: var(--gold-soft); background: rgba(212, 162, 76, 0.08); }
+.drawer-link.support { gap: 10px; color: var(--muted); }
+.drawer-link.support:active { background: rgba(255, 255, 255, 0.06); }
