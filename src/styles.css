@@ -806,14 +806,17 @@ img.avatar { object-fit: cover; }
 .field-note { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
 /* ---------- the card flip ---------- */
-/* Turns from the right edge towards the left, the way a dealer's thumb rolls a
-   card over, rather than spinning about its centre. Slower now, to match the
-   slower deal, with a slight overshoot so it lands with weight. */
+/* Rolls over right-to-left, the way a dealer turns a card, and slowly enough
+   now to actually watch.
+   The pivot stays at the centre on purpose: rotating about the right edge swings
+   the card a full width to the left as it turns, so it lands on top of whatever
+   sits beside it. The direction of the rotation is what reads as right-to-left,
+   not the pivot. */
 .pc-inner {
-  transform-origin: right center;
+  transform-origin: center;
   transition: transform 0.62s cubic-bezier(0.22, 1.1, 0.36, 1);
 }
-.pc.up .pc-inner { transform: rotateY(180deg); }
+.pc.up .pc-inner { transform: rotateY(-180deg); }
 
 /* A card that has just landed catches the light. */
 @keyframes card-land {
