@@ -830,3 +830,11 @@ img.avatar { object-fit: cover; }
   .pc-inner { transition: none; }
   .pc.up .pc-face { animation: none; }
 }
+
+/* The seat the dealer is serving right now. */
+.pt-seat.dealing .pt-chair {
+  border-color: var(--gold-soft);
+  box-shadow: 0 0 0 1px rgba(240, 205, 140, 0.4), 0 0 22px rgba(240, 205, 140, 0.35);
+  transform: translateY(-2px);
+}
+.pt-seat { transition: transform 0.25s ease; }

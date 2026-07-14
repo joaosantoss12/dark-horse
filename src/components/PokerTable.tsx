@@ -53,9 +53,15 @@ function Seat({
   const current = player.deals[Math.max(0, (room.deal || 1) - 1)];
   const won = player.won ?? 0;
 
+  // The dealer is at this seat right now: the chair lifts and the next card is
+  // about to land here.
+  const beingDealt = room.dealingSeat === player.seat && room.phase === 'dealing';
+
   return (
     <div
-      className={`pt-seat ${isYou ? 'you' : ''} ${results && won > 0 ? 'winner' : ''}`}
+      className={`pt-seat ${isYou ? 'you' : ''} ${results && won > 0 ? 'winner' : ''} ${
+        beingDealt ? 'dealing' : ''
+      }`}
       style={pos}
     >
       {/* The three cards of the deal on the table. */}

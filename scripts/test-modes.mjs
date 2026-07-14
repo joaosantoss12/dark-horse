@@ -123,13 +123,21 @@ console.log('\nThe daily free limit');
 
 console.log('\nPace');
 {
-  const t = (await db.query('SELECT dh_countdown() c, dh_card_gap() g, dh_deal_len() l')).rows[0];
-  check('the countdown is 5s', Number(t.c) === 5);
-  check('a card turns over every 2.4s', Number(t.g) === 2.4);
-  check('a deal lasts 10.4s', Number(t.l) === 10.4);
-  // 5s shuffle + three 10.4s deals.
-  const hand = Number(t.c) + 3 * Number(t.l);
-  check('a whole hand runs ~36s, against ~23s before', Math.abs(hand - 36.2) < 0.1, `${hand}s`);
+  // A deal is now one flip per seat per card, so its length depends on the table.
+  const t = (await db.query(
+    'SELECT dh_countdown() c, dh_seat_gap() g, dh_deal_len(4) l4, dh_deal_len(8) l8',
+  )).rows[0];
+
+  check('the shuffle is 5s', Number(t.c) === 5);
+  check('a card lands every 0.55s', Number(t.g) === 0.55);
+  check('a 4-seat deal is 12 flips + scoring = 9.8s', Math.abs(Number(t.l4) - 9.8) < 0.01, t.l4);
+  check('an 8-seat deal is 24 flips + scoring = 16.4s', Math.abs(Number(t.l8) - 16.4) < 0.01, t.l8);
+
+  const hand4 = Number(t.c) + 3 * Number(t.l4);
+  const hand8 = Number(t.c) + 3 * Number(t.l8);
+  check('a 4-seat hand runs ~34s', Math.abs(hand4 - 34.4) < 0.1, `${hand4}s`);
+  check('an 8-seat hand runs ~54s -- twice the cards to deal',
+    Math.abs(hand8 - 54.2) < 0.1, `${hand8}s`);
 }
 
 await db.query('DELETE FROM auth.users WHERE id = $1', [uid]);

@@ -73,9 +73,12 @@ export function useTables(roomId?: number) {
 
     const stopWatching = watchTables(() => void load());
 
+    // A card lands every 550ms during a deal, so poll faster than that or flips
+    // get skipped and the dealer appears to jump seats. Only while a hand is
+    // actually running -- an idle lobby makes no polling requests at all.
     const ticker = setInterval(() => {
       if (latest.current?.some((r) => r.phase !== 'waiting')) void load();
-    }, 700);
+    }, 350);
 
     // Safety net for a dropped Realtime socket. Realtime is what actually keeps
     // the lobby current, so this only needs to be rare -- it was firing every 5s

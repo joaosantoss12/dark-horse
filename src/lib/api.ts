@@ -45,8 +45,12 @@ export interface Room {
   phase: Phase;
   /** Which of the three deals is on the table (1-3), or 0 while waiting. */
   deal: number;
-  /** Cards turned over in the current deal (0-3). */
+  /** Cards the dealer has laid down in this deal, across every seat. */
+  flips: number;
+  /** How many cards every seat is holding (0-3). */
   revealed: number;
+  /** The seat the dealer is serving right now, or null between laps. */
+  dealingSeat: number | null;
   players: TablePlayer[];
   startsInMs: number | null;
 }

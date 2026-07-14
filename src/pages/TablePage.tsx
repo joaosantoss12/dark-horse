@@ -34,6 +34,9 @@ function Dealer({ room, seated }: { room: Room; seated: boolean }) {
   }
 
   if (room.phase === 'dealing') {
+    const total = room.seats * 3;
+    const done = room.flips >= total;
+
     return (
       <>
         <div className="pt-status">Deal {room.deal} of 3</div>
@@ -43,7 +46,9 @@ function Dealer({ room, seated }: { room: Room; seated: boolean }) {
           ))}
         </div>
         <div className="pt-sub">
-          {room.revealed < 3 ? `Card ${room.revealed} of 3` : 'Scoring…'}
+          {done
+            ? 'Scoring…'
+            : `Dealing card ${Math.min(3, Math.floor(room.flips / room.seats) + 1)} · ${room.flips} of ${total}`}
         </div>
       </>
     );
