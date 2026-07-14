@@ -282,15 +282,50 @@ a { color: inherit; text-decoration: none; }
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(120% 90% at 85% 0%, rgba(212, 162, 76, 0.16), transparent 60%);
 }
-.table-card-top { display: flex; align-items: center; margin-bottom: 14px; }
-.table-name { font-weight: 800; font-size: 18px; }
-.pill {
-  margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: 0.09em;
-  text-transform: uppercase; padding: 5px 9px; border-radius: 999px;
-  background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.12);
+.table-card-top {
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px;
 }
-.pill.live { background: #7a2626; border-color: #b45050; }
-.pill.seated { background: var(--gold); color: #2a1d08; border-color: var(--gold); }
+.table-name {
+  flex: 1; min-width: 0;
+  font-weight: 800; font-size: 17px; line-height: 1.25;
+}
+
+/* A status marker, not a button. It never wraps and never shrinks -- the title
+   wraps instead, because the title is the thing with something to say. */
+.pill {
+  flex: none; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 2px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 9px; border-radius: 6px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(245, 239, 230, 0.65);
+}
+
+/* A live table gets a pulsing dot, the way a broadcast does -- rather than a big
+   red slab that reads as something you are meant to press. */
+.pill.live {
+  background: rgba(180, 80, 80, 0.14);
+  border-color: rgba(200, 100, 100, 0.4);
+  color: #f0a3a3;
+}
+.pill.live::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: #e06a6a; box-shadow: 0 0 6px #e06a6a;
+  animation: live-dot 1.6s ease-in-out infinite;
+}
+@keyframes live-dot { 50% { opacity: 0.25; } }
+
+.pill.seated {
+  background: rgba(212, 162, 76, 0.16);
+  border-color: var(--gold);
+  color: var(--gold-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill.live::before { animation: none; }
+}
 .table-meta { display: flex; gap: 20px; }
 .table-meta div { display: flex; flex-direction: column; gap: 2px; }
 .table-meta span {
@@ -879,3 +914,39 @@ img.avatar { object-fit: cover; }
 .notify-toggle:hover { color: var(--text); border-color: var(--gold); }
 .notify-toggle.on { color: var(--gold-soft); border-color: var(--gold); }
 .filling { color: var(--gold-soft); font-weight: 700; }
+
+/* ---------- who won, in the middle of the table ---------- */
+.pt-winners {
+  display: flex; flex-direction: column; gap: 3px;
+  margin: 6px 0 4px;
+  width: 100%; max-width: 260px;
+}
+.pt-winner {
+  display: flex; align-items: center; gap: 7px;
+  padding: 4px 8px; border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 12px;
+}
+.pt-winner:first-child {
+  background: rgba(212, 162, 76, 0.16);
+  border-color: rgba(212, 162, 76, 0.5);
+}
+.pt-winner-medal { flex: none; font-size: 13px; }
+.pt-winner-name {
+  flex: 1; min-width: 0; text-align: left; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pt-winner-total {
+  flex: none; font-size: 11px; font-weight: 700; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.pt-winner-won {
+  flex: none; font-weight: 800; color: var(--win);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .pt-winners { max-width: 200px; }
+  .pt-winner { font-size: 11px; padding: 3px 6px; gap: 5px; }
+}

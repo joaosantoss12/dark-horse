@@ -56,10 +56,33 @@ function Dealer({ room, seated }: { room: Room; seated: boolean }) {
   }
 
   if (room.phase === 'results') {
+    // Who won, and how much -- in the middle of the table, where everyone is
+    // already looking. "Winners paid" on its own told nobody anything.
+    const winners = room.players
+      .filter((p) => (p.won ?? 0) > 0)
+      .sort((a, b) => (a.place ?? 99) - (b.place ?? 99));
+
     return (
       <>
         <div className="pt-status">Final</div>
-        <div className="pt-headline">Winners paid</div>
+
+        {winners.length === 0 ? (
+          <div className="pt-headline">No winners</div>
+        ) : (
+          <div className="pt-winners">
+            {winners.map((player) => (
+              <div key={player.seat} className="pt-winner">
+                <span className="pt-winner-medal">
+                  {MEDALS[(player.place ?? 9) - 1] ?? player.place}
+                </span>
+                <span className="pt-winner-name">{player.name}</span>
+                <span className="pt-winner-total">{player.totalValue}</span>
+                <span className="pt-winner-won">{moneyGain(player.won)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="pt-sub">The table resets in a moment</div>
       </>
     );
