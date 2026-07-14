@@ -838,3 +838,11 @@ img.avatar { object-fit: cover; }
   transform: translateY(-2px);
 }
 .pt-seat { transition: transform 0.25s ease; }
+
+.label-row { display: flex; align-items: baseline; gap: 10px; }
+.label-row label { flex: 1; margin-bottom: 6px; }
+.link.inline {
+  display: inline; width: auto; margin: 0 0 6px; text-align: right;
+  font-size: 12px; white-space: nowrap;
+}
+.forgot-note { font-size: 13px; margin-bottom: 16px; }
