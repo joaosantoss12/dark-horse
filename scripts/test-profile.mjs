@@ -80,9 +80,10 @@ console.log('\nDisplay name');
   check('a one-character name is rejected', !!short);
 
   // The balance must not be reachable through the profile editor.
+  await db.query('UPDATE profiles SET balance = 250 WHERE id = $1', [alice.id]);
   await alice.client.from('profiles').update({ balance: 999999 }).eq('id', alice.id);
   const bal = (await db.query('SELECT balance FROM profiles WHERE id = $1', [alice.id])).rows[0];
-  check('editing a profile cannot touch the balance', Number(bal.balance) === 1000, `${bal.balance}`);
+  check('editing a profile cannot touch the balance', Number(bal.balance) === 250, `${bal.balance}`);
 }
 
 console.log('\nAvatar upload');

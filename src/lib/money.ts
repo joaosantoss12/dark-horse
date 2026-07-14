@@ -1,0 +1,23 @@
+/**
+ * Every amount in the game is shown with a $ and a thousands separator, from one
+ * place, so a prize, a balance and a buy-in can never drift into different
+ * formats.
+ *
+ * These are internal points, not real currency -- there is no deposit or cash-out
+ * path anywhere in the app. The $ is presentation only.
+ */
+export function money(amount: number | null | undefined): string {
+  return `$${(amount ?? 0).toLocaleString()}`;
+}
+
+/** A prize or a win: "+$115". Zero comes back as a dash, not "+$0". */
+export function moneyGain(amount: number | null | undefined): string {
+  return amount && amount > 0 ? `+${money(amount)}` : '—';
+}
+
+/** A net figure that can go either way: "+$95" or "-$20". */
+export function moneySigned(amount: number): string {
+  if (amount > 0) return `+${money(amount)}`;
+  if (amount < 0) return `-${money(Math.abs(amount))}`;
+  return money(0);
+}

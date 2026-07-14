@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { HowToPlay } from '../components/HowToPlay';
 import { api, type Limits, type Mode, type Room } from '../lib/api';
+import { money } from '../lib/money';
 import { useAuth } from '../lib/useAuth';
 import { useTables } from '../lib/useRoom';
 
@@ -27,11 +28,11 @@ function TableCard({ room, youId, locked }: { room: Room; youId: string; locked:
       <div className="table-meta">
         <div>
           <span>Buy-in</span>
-          <b>{room.buyIn}</b>
+          <b>{money(room.buyIn)}</b>
         </div>
         <div>
           <span>Top prize</span>
-          <b>{room.prizes[0]}</b>
+          <b>{money(room.prizes[0])}</b>
         </div>
         <div>
           <span>Pays</span>

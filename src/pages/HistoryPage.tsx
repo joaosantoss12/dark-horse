@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { cardText } from '../components/PlayingCard';
 import { api, type Card } from '../lib/api';
+import { moneyGain, moneySigned } from '../lib/money';
 
 interface Played {
   round_id: number;
@@ -51,7 +52,7 @@ export function HistoryPage() {
                 </span>
               </div>
               <div className={`amount ${round.net > 0 ? 'up' : round.net < 0 ? 'down' : ''}`}>
-                {round.net > 0 ? `+${round.net}` : round.net}
+                {moneySigned(round.net)}
               </div>
             </div>
 
@@ -88,7 +89,7 @@ export function HistoryPage() {
               <div className="row-title">{leader.display_name}</div>
               <div className="row-sub">{leader.wins} winning hands</div>
             </div>
-            <div className="amount up">+{leader.winnings}</div>
+            <div className="amount up">{moneyGain(leader.winnings)}</div>
           </div>
         ))}
       </div>

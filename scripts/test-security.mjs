@@ -62,10 +62,10 @@ const userId = (await db.query('SELECT id FROM auth.users WHERE email = $1', [EM
 
 const profile = (await db.query('SELECT * FROM profiles WHERE id = $1', [userId])).rows[0];
 check('creating an account creates a profile automatically', !!profile);
-check('a new player starts with 1000 points', Number(profile?.balance) === 1000);
-check('the welcome bonus is written to the ledger',
-  (await db.query(`SELECT COUNT(*)::int n FROM ledger WHERE user_id = $1 AND kind = 'signup'`, [userId]))
-    .rows[0].n === 1);
+check('a new player starts with $0 -- there is no welcome bonus', Number(profile?.balance) === 0);
+
+// Nobody can play on $0, so fund this one the way an admin would.
+await db.query('UPDATE profiles SET balance = 1000 WHERE id = $1', [userId]);
 
 const { error: signInError } = await cheat.auth.signInWithPassword({
   email: EMAIL,
@@ -80,7 +80,7 @@ console.log('\nWhat a signed-in player must NOT be able to do');
   // 1. Give themselves points.
   const { error: e1 } = await cheat.from('profiles').update({ balance: 999999 }).eq('id', userId);
   const after = (await db.query('SELECT balance FROM profiles WHERE id = $1', [userId])).rows[0];
-  check('cannot hand themselves points', Number(after.balance) === 1000,
+  check('cannot hand themselves money', Number(after.balance) === 1000,
     `balance is now ${after.balance} (error was: ${e1?.message ?? 'none'})`);
 
   // 2. Make themselves an admin.

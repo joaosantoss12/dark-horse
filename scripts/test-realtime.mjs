@@ -72,7 +72,8 @@ check('the new balance is pushed to the browser', events.length > 0,
 
 if (events.length) {
   const took = Date.now() - started;
-  check('the payload carries the new balance', Number(events[0].balance) === 1250,
+  // A new account starts at $0, so a $250 prize lands them on $250.
+  check('the payload carries the new balance', Number(events[0].balance) === 250,
     `got ${events[0].balance}`);
   console.log(`  (arrived in ~${took}ms)`);
 }

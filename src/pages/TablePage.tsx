@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { PokerTable } from '../components/PokerTable';
 import { api, type Room } from '../lib/api';
+import { money, moneyGain } from '../lib/money';
 import { useAuth } from '../lib/useAuth';
 import { useTables } from '../lib/useRoom';
 
@@ -123,7 +124,7 @@ export function TablePage() {
       <div className="actions sticky-actions">
         {waiting && !seated && !full && (
           <button className="btn btn-block" disabled={busy} onClick={() => act(() => api.join(room.id))}>
-            Take a seat · {room.buyIn} pts
+            Take a seat · {money(room.buyIn)}
           </button>
         )}
 
@@ -167,12 +168,12 @@ export function TablePage() {
             <span className="prize-place">
               {MEDALS[i]} {ORDINALS[i]}
             </span>
-            <b>+{prize}</b>
+            <b>{moneyGain(prize)}</b>
           </div>
         ))}
         <div className="prize muted">
           <span className="prize-place">Buy-in</span>
-          <b>{room.buyIn}</b>
+          <b>{money(room.buyIn)}</b>
         </div>
       </div>
 
@@ -200,7 +201,7 @@ export function TablePage() {
                     </div>
                   </div>
                   <div className={`amount ${(player.won ?? 0) > 0 ? 'up' : ''}`}>
-                    {(player.won ?? 0) > 0 ? `+${player.won}` : '—'}
+                    {moneyGain(player.won)}
                   </div>
                 </div>
               ))}

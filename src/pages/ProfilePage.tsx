@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { PlayingCard } from '../components/PlayingCard';
 import { api, MAX_AVATAR_BYTES, type Stats } from '../lib/api';
+import { money, moneyGain, moneySigned } from '../lib/money';
 import { useAuth } from '../lib/useAuth';
 
 const HAND_LABEL: Record<number, string> = { 2: 'Three of a Kind', 1: 'Crown' };
@@ -131,7 +132,7 @@ export function ProfilePage() {
         <div className="profile-id">
           <div className="profile-name">{profile.display_name}</div>
           <div className="muted">
-            <b className="gold">{profile.balance.toLocaleString()}</b> points
+            <b className="gold">{money(profile.balance)}</b>
             {profile.is_admin && <span className="tag" style={{ marginLeft: 8 }}>Admin</span>}
           </div>
           {avatarUrl && (
@@ -157,10 +158,8 @@ export function ProfilePage() {
           <span>In the money</span>
         </div>
         <div className="stat">
-          <b className={net > 0 ? 'up' : net < 0 ? 'down' : ''}>
-            {net > 0 ? `+${net}` : net}
-          </b>
-          <span>Net points</span>
+          <b className={net > 0 ? 'up' : net < 0 ? 'down' : ''}>{moneySigned(net)}</b>
+          <span>Net</span>
         </div>
       </div>
 
@@ -170,14 +169,14 @@ export function ProfilePage() {
             <div className="row-title">Total wagered</div>
             <div className="row-sub">Buy-ins across every hand</div>
           </div>
-          <div className="amount">{stats?.wagered ?? 0}</div>
+          <div className="amount">{money(stats?.wagered)}</div>
         </div>
         <div className="row">
           <div className="row-main">
             <div className="row-title">Total won</div>
             <div className="row-sub">Prizes collected</div>
           </div>
-          <div className="amount up">+{stats?.won ?? 0}</div>
+          <div className="amount up">{moneyGain(stats?.won)}</div>
         </div>
         <div className="row">
           <div className="row-main">

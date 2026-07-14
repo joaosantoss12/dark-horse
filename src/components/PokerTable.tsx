@@ -1,5 +1,6 @@
 import { PlayingCard } from './PlayingCard';
 import type { Room, TablePlayer } from '../lib/api';
+import { moneyGain } from '../lib/money';
 
 const MEDALS = ['🥇', '🥈', '🥉', '🏅'];
 const HAND_LABEL: Record<number, string> = { 2: 'Three of a Kind', 1: 'Crown' };
@@ -112,7 +113,7 @@ function Seat({
 
         {results && (
           <div className={`pt-won ${won > 0 ? '' : 'zero'}`}>
-            {won > 0 ? `+${won}` : '—'}
+            {moneyGain(won)}
             {player.isSplit && <span className="tag">Split</span>}
           </div>
         )}

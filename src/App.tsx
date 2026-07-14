@@ -4,6 +4,7 @@ import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react
 import { RulesGate } from './components/RulesGate';
 import { SUPPORT_URL, SupportLink, TelegramIcon } from './components/Support';
 import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
+import { money } from './lib/money';
 import { AuthProvider, useAuth } from './lib/useAuth';
 import { AdminPage } from './pages/AdminPage';
 import { AuthPage } from './pages/AuthPage';
@@ -87,9 +88,8 @@ function Shell() {
             <TelegramIcon />
           </a>
 
-          <div className="balance" title={`${profile.balance.toLocaleString()} points`}>
-            <span className="balance-value">{profile.balance.toLocaleString()}</span>
-            <span className="balance-unit">pts</span>
+          <div className="balance" title={`${money(profile.balance)} balance`}>
+            <span className="balance-value">{money(profile.balance)}</span>
           </div>
 
           <Link
@@ -140,9 +140,7 @@ function Shell() {
                 )}
                 <div>
                   <div className="drawer-name">{profile.display_name}</div>
-                  <div className="drawer-balance">
-                    {profile.balance.toLocaleString()} pts
-                  </div>
+                  <div className="drawer-balance">{money(profile.balance)}</div>
                 </div>
               </div>
 

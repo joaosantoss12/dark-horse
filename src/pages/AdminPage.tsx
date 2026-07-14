@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Modal } from '../components/Modal';
 import { api, type Mode } from '../lib/api';
+import { money } from '../lib/money';
 import { useAuth } from '../lib/useAuth';
 
 interface RoomRow {
@@ -78,7 +79,7 @@ function RoomEditor({ initial, onDone }: { initial: RoomForm; onDone: () => void
           value={form.mode}
           onChange={(e) => setForm({ ...form, mode: e.target.value as Mode })}
         >
-          <option value="free">Free — points, subject to the daily limit</option>
+          <option value="free">Free — play money, subject to the daily limit</option>
           <option value="cash">Real money — locked until licensed</option>
         </select>
         {form.mode === 'cash' && (
@@ -102,7 +103,7 @@ function RoomEditor({ initial, onDone }: { initial: RoomForm; onDone: () => void
           </select>
         </div>
         <div className="field">
-          <label>Buy-in (points)</label>
+          <label>Buy-in ($)</label>
           <input
             className="input"
             type="number"
@@ -134,14 +135,14 @@ function RoomEditor({ initial, onDone }: { initial: RoomForm; onDone: () => void
       </div>
 
       <div className={`house-note ${house < 0 ? 'bad' : ''}`}>
-        Pot <b>{pot}</b> · pays out <b>{payout}</b> ·{' '}
+        Pot <b>{money(pot)}</b> · pays out <b>{money(payout)}</b> ·{' '}
         {house >= 0 ? (
           <>
-            house keeps <b>{house}</b>
+            platform fee <b>{money(house)}</b>
           </>
         ) : (
           <>
-            house <b>loses {-house}</b> every hand
+            the house <b>loses {money(-house)}</b> every hand
           </>
         )}
       </div>
@@ -241,7 +242,8 @@ function Tables() {
                 {!room.is_active && <span className="tag muted-tag">Closed</span>}
               </div>
               <div className="row-sub">
-                {room.seats} seats · buy-in {room.buy_in} · prizes {room.prizes.join(' / ')}
+                {room.seats} seats · buy-in {money(room.buy_in)} · prizes{' '}
+                {room.prizes.map((p) => money(p)).join(' / ')}
                 {Number(room.rounds_played) > 0 && ` · ${room.rounds_played} played`}
               </div>
             </div>
@@ -305,7 +307,7 @@ function Players() {
   };
 
   const custom = async (id: string) => {
-    const input = window.prompt('Points to add (use a negative number to take points away):');
+    const input = window.prompt('Amount to add in $ (use a negative number to take it away):');
     if (!input) return;
     const amount = Number(input);
     if (!Number.isInteger(amount) || amount === 0) return;
@@ -345,11 +347,11 @@ function Players() {
                 {player.is_banned && <span className="tag danger">Banned</span>}
               </div>
               <div className="row-sub">
-                {player.email} · <b>{player.balance}</b> pts
+                {player.email} · <b>{money(player.balance)}</b>
               </div>
             </div>
             <button className="btn btn-ghost btn-sm" onClick={() => adjust(player.id, 500)}>
-              +500
+              +$500
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => custom(player.id)}>
               ±
