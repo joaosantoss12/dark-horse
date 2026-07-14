@@ -858,3 +858,7 @@ img.avatar { object-fit: cover; }
 .support-link:hover { color: var(--gold-soft); background: rgba(212, 162, 76, 0.08); }
 .drawer-link.support { gap: 10px; color: var(--muted); }
 .drawer-link.support:active { background: rgba(255, 255, 255, 0.06); }
+
+.forgot-panel { display: flex; flex-direction: column; gap: 12px; }
+.forgot-panel p { font-size: 14px; color: var(--muted); }
+.forgot-panel b { color: var(--gold-soft); }

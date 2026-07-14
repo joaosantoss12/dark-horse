@@ -288,6 +288,19 @@ export const api = {
         }),
       );
     },
+    /**
+     * Sets a player's password. There is no mail sender, so this is how a
+     * locked-out player gets back in: they message support, an admin sets a new
+     * password here and sends it to them.
+     */
+    async setPassword(userId: string, password: string) {
+      return unwrap<{ ok: boolean; email: string }>(
+        await supabase.rpc('dh_admin_set_password', {
+          p_user_id: userId,
+          p_password: password,
+        }),
+      );
+    },
     async setBanned(userId: string, banned: boolean) {
       return unwrap(await supabase.rpc('dh_admin_set_banned', { p_user_id: userId, p_banned: banned }));
     },

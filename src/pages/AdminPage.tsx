@@ -312,6 +312,41 @@ function Players() {
     await adjust(id, amount);
   };
 
+  /** A readable password the admin can paste into Telegram. */
+  const suggestPassword = () => {
+    const words = ['amber', 'copper', 'falcon', 'harbour', 'lantern', 'meadow', 'quartz', 'willow'];
+    const pick = () => words[Math.floor(Math.random() * words.length)];
+    return `${pick()}-${pick()}-${Math.floor(1000 + Math.random() * 9000)}`;
+  };
+
+  const resetPassword = async (player: PlayerRow) => {
+    const suggested = suggestPassword();
+    const input = window.prompt(
+      `New password for ${player.display_name} (${player.email}).
+
+` +
+        'Send it to them on Telegram and tell them to change it once they are in.',
+      suggested,
+    );
+    if (!input) return;
+
+    setError(null);
+    try {
+      await api.admin.setPassword(player.id, input.trim());
+      window.alert(
+        `Password set for ${player.display_name}.
+
+` +
+          `Send them: ${input.trim()}
+
+` +
+          'It works on the normal sign-in form straight away.',
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not set that password.');
+    }
+  };
+
   const toggleBan = async (player: PlayerRow) => {
     setError(null);
     try {
@@ -353,6 +388,13 @@ function Players() {
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => custom(player.id)}>
               ±
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => void resetPassword(player)}
+              title="Set a new password for this player"
+            >
+              🔑
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => toggleBan(player)}>
               {player.is_banned ? 'Unban' : 'Ban'}

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 
 import { HowToPlay } from '../components/HowToPlay';
-import { SupportLink } from '../components/Support';
+import { SUPPORT_URL, SupportLink, TelegramIcon } from '../components/Support';
 import { Modal } from '../components/Modal';
 import { HorseMark } from '../components/icons';
 import { setRemember, supabase } from '../lib/supabase';
@@ -28,23 +28,7 @@ export function AuthPage() {
     setRemember(remember);
 
     try {
-      if (mode === 'forgot') {
-        if (!email.trim()) throw new Error('Enter the email you signed up with.');
-
-        // The link in the email has to come back to this site, wherever it is
-        // running -- localhost while developing, the live domain in production.
-        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: `${window.location.origin}/reset`,
-        });
-        if (error) throw error;
-
-        // Deliberately the same message whether or not that address has an
-        // account: otherwise this form tells a stranger who is registered here.
-        setNotice(
-          'If that email has an account, a reset link is on its way. ' +
-            'Not arriving? Message support on Telegram and we will sort it out.',
-        );
-      } else if (mode === 'signup') {
+      if (mode === 'signup') {
         if (password.length < 8) throw new Error('Use at least 8 characters for your password.');
 
         const { data, error } = await supabase.auth.signUp({
@@ -99,18 +83,20 @@ export function AuthPage() {
             </div>
           )}
 
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              className="input"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </div>
+          {mode !== 'forgot' && (
+            <div className="field">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                className="input"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+            </div>
+          )}
 
           {/* Asking for a reset link needs the email and nothing else. */}
           {mode !== 'forgot' && (
@@ -157,33 +143,44 @@ export function AuthPage() {
             </>
           )}
 
+          {/* There is no mail sender, so we do not pretend to send one. A
+              locked-out player talks to a human, who resets them from the admin
+              panel. */}
           {mode === 'forgot' && (
-            <p className="muted forgot-note">
-              We will email you a link that lets you set a new password.
-            </p>
+            <div className="forgot-panel">
+              <p>
+                Message <b>@DH_Support</b> on Telegram with the email you signed up with, and we
+                will set you a new password straight away.
+              </p>
+              <a
+                className="btn btn-block"
+                href={SUPPORT_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <TelegramIcon />
+                Message support on Telegram
+              </a>
+            </div>
           )}
 
-          <button className="btn btn-block" disabled={busy} type="submit">
-            {busy
-              ? 'Please wait…'
-              : mode === 'signup'
-                ? 'Create account'
-                : mode === 'forgot'
-                  ? 'Email me a reset link'
-                  : 'Sign in'}
-          </button>
+          {mode !== 'forgot' && (
+            <button className="btn btn-block" disabled={busy} type="submit">
+              {busy ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Sign in'}
+            </button>
+          )}
         </form>
 
         <div className="auth-alt">
           <button
             className="btn btn-ghost btn-block"
             onClick={() => {
-              setMode(mode === 'signin' ? 'signup' : 'signin');
+              setMode(mode === 'forgot' ? 'signin' : mode === 'signin' ? 'signup' : 'signin');
               setError(null);
               setNotice(null);
             }}
           >
-            {mode === 'signin' ? 'Create an account' : 'Sign in instead'}
+            {mode === 'signin' ? 'Create an account' : 'Back to sign in'}
           </button>
 
           {mode !== 'forgot' && (
@@ -193,7 +190,7 @@ export function AuthPage() {
           )}
         </div>
 
-        <SupportLink />
+        {mode !== 'forgot' && <SupportLink />}
       </div>
 
       {showRules && (
