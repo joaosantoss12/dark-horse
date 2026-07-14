@@ -65,6 +65,24 @@ function Dealer({ room, seated }: { room: Room; seated: boolean }) {
     );
   }
 
+  // Waiting, with a clock running: the table must fill before it expires, and
+  // everyone is refunded if it does not.
+  if (room.fillsInMs != null && room.players.length > 0) {
+    return (
+      <>
+        <div className="pt-status">
+          {room.players.length} / {room.seats} · waiting for players
+        </div>
+        <Countdown ms={room.fillsInMs} />
+        <div className="pt-sub">
+          {seated
+            ? 'If the table does not fill, your buy-in comes straight back.'
+            : 'Take a seat before the clock runs out.'}
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="pt-status">Waiting</div>

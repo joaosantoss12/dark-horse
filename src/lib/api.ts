@@ -61,6 +61,11 @@ export interface Room {
   dealingSeat: number | null;
   players: TablePlayer[];
   startsInMs: number | null;
+  /**
+   * How long the table has left to fill before everyone is refunded and the
+   * seats are cleared. Null when no clock is running.
+   */
+  fillsInMs: number | null;
 }
 
 export interface Profile {
@@ -257,7 +262,7 @@ export const api = {
   },
 
   async room(id: number): Promise<Room> {
-    return unwrap(await supabase.rpc('dh_get_room', { p_room_id: id }));
+    return unwrap(await supabase.rpc('dh_room_with_clock', { p_room_id: id }));
   },
 
   async join(id: number) {

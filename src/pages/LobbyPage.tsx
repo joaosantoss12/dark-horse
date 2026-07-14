@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { HowToPlay } from '../components/HowToPlay';
 import { api, type Limits, type Mode, type Room } from '../lib/api';
 import { money } from '../lib/money';
+import { notificationsOn, notificationsSupported, requestNotifications, setNotifications } from '../lib/notify';
 import { useAuth } from '../lib/useAuth';
 import { useTables } from '../lib/useRoom';
 
@@ -49,6 +50,9 @@ function TableCard({ room, youId, locked }: { room: Room; youId: string; locked:
       </div>
       <div className="seat-count">
         {room.players.length} / {room.seats} seated
+        {room.fillsInMs != null && room.players.length > 0 && (
+          <span className="filling"> · filling</span>
+        )}
       </div>
     </>
   );
@@ -119,9 +123,30 @@ function Section({
   );
 }
 
+function NotifyToggle() {
+  const [on, setOn] = useState(notificationsOn());
+
+  if (!notificationsSupported()) return null;
+
+  const toggle = async () => {
+    if (on) {
+      setNotifications(false);
+      setOn(false);
+      return;
+    }
+    setOn(await requestNotifications());
+  };
+
+  return (
+    <button className={`notify-toggle ${on ? 'on' : ''}`} onClick={() => void toggle()}>
+      {on ? '🔔 Alerts on' : '🔕 Alert me when a table fills'}
+    </button>
+  );
+}
+
 export function LobbyPage() {
-  const { rooms, error } = useTables();
   const { profile } = useAuth();
+  const { rooms, error } = useTables(undefined, profile?.id);
   const [limits, setLimits] = useState<Limits | null>(null);
 
   // The count only moves when a hand is dealt, so refreshing it with the lobby
@@ -138,6 +163,10 @@ export function LobbyPage() {
 
   return (
     <>
+      <div className="lobby-head">
+        <NotifyToggle />
+      </div>
+
       <Section mode="free" rooms={free} youId={profile.id} limits={limits} />
       <Section mode="cash" rooms={cash} youId={profile.id} limits={limits} />
 

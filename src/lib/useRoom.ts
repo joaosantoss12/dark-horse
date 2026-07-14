@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   api, getCached, seedRoomsFromLobby, setCached, takeLobbyPrefetch, watchTables, type Room,
 } from './api';
+import { watchForFillingTables } from './notify';
 import { timed } from './perf';
 
 /**
@@ -17,7 +18,7 @@ import { timed } from './perf';
  * The first render comes from the in-memory cache when there is one, so coming
  * back to the lobby is instant instead of blanking out for a round trip.
  */
-export function useTables(roomId?: number) {
+export function useTables(roomId?: number, youId?: string) {
   const key = roomId ? `room:${roomId}` : 'lobby';
 
   const [rooms, setRooms] = useState<Room[] | null>(() => getCached(key));
@@ -37,7 +38,10 @@ export function useTables(roomId?: number) {
       setCached(key, next);
       // One lobby response describes every table, so opening one needs no
       // request of its own.
-      if (!roomId) seedRoomsFromLobby(next);
+      if (!roomId) {
+        seedRoomsFromLobby(next);
+        if (youId) watchForFillingTables(next, youId);
+      }
       setRooms(next);
       setError(null);
     };
@@ -74,10 +78,12 @@ export function useTables(roomId?: number) {
     const stopWatching = watchTables(() => void load());
 
     // A card lands every 550ms during a deal, so poll faster than that or flips
-    // get skipped and the dealer appears to jump seats. Only while a hand is
-    // actually running -- an idle lobby makes no polling requests at all.
+    // get skipped and the dealer appears to jump seats. Also poll while a table
+    // is counting down to fill, or its clock would sit frozen and the refund
+    // would arrive without warning. An idle, empty lobby polls not at all.
     const ticker = setInterval(() => {
-      if (latest.current?.some((r) => r.phase !== 'waiting')) void load();
+      const busy = latest.current?.some((r) => r.phase !== 'waiting' || r.fillsInMs != null);
+      if (busy) void load();
     }, 350);
 
     // Safety net for a dropped Realtime socket. Realtime is what actually keeps
@@ -91,7 +97,7 @@ export function useTables(roomId?: number) {
       clearInterval(ticker);
       clearInterval(slow);
     };
-  }, [roomId, key]);
+  }, [roomId, key, youId]);
 
   return { rooms, error };
 }

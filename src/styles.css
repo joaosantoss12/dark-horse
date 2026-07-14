@@ -867,3 +867,15 @@ img.avatar { object-fit: cover; }
 @media (prefers-reduced-motion: reduce) {
   .pc:not(.up) .pc-back { animation: none; }
 }
+
+/* ---------- lobby: notifications + a filling table ---------- */
+.lobby-head { display: flex; justify-content: flex-end; margin-bottom: -6px; }
+.notify-toggle {
+  padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--panel);
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.notify-toggle:hover { color: var(--text); border-color: var(--gold); }
+.notify-toggle.on { color: var(--gold-soft); border-color: var(--gold); }
+.filling { color: var(--gold-soft); font-weight: 700; }
