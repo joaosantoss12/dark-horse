@@ -364,9 +364,89 @@ function Players() {
   );
 }
 
+
+/** The dealing pace and the daily free limit, tunable without a deploy. */
+function Pace() {
+  const [values, setValues] = useState<Record<string, number> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  const load = useCallback(() => {
+    api.admin.settings().then(setValues).catch((err) => setError(err.message));
+  }, []);
+  useEffect(load, [load]);
+
+  if (!values) return <div className="muted">Loading…</div>;
+
+  const set = (key: string, value: number) => setValues({ ...values, [key]: value });
+
+  const save = async () => {
+    setError(null);
+    setSaved(false);
+    try {
+      for (const [key, value] of Object.entries(values)) {
+        await api.admin.setSetting(key, value);
+      }
+      setSaved(true);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save.');
+    }
+  };
+
+  const gap = values.seat_gap_ms ?? 1800;
+  const hold = values.score_hold_ms ?? 4000;
+  const countdown = values.countdown_ms ?? 6000;
+
+  // A hand is the shuffle plus three deals; a deal is one card per seat per card.
+  const hand = (seats: number) => (countdown + 3 * (seats * 3 * gap + hold)) / 1000;
+
+  const fields: [string, string, string][] = [
+    ['seat_gap_ms', 'Card to card (ms)', 'From one card landing to the next. The whole pace.'],
+    ['flip_delay_ms', 'Face down for (ms)', 'How long a card sits face down before it turns.'],
+    ['score_hold_ms', 'Scores on screen (ms)', 'After the last card of a deal, before the next.'],
+    ['countdown_ms', 'Shuffle (ms)', 'The countdown before the first card.'],
+    ['free_hands_per_day', 'Free hands per day', 'Free-mode limit. Resets at midnight UTC.'],
+  ];
+
+  return (
+    <>
+      {error && <div className="error">{error}</div>}
+      {saved && <div className="notice">Saved. It applies to the next hand dealt.</div>}
+
+      <div className="panel">
+        {fields.map(([key, label, note]) => (
+          <div key={key} className="field">
+            <label htmlFor={key}>{label}</label>
+            <input
+              id={key}
+              className="input"
+              type="number"
+              min={0}
+              value={values[key] ?? 0}
+              onChange={(e) => set(key, Number(e.target.value))}
+            />
+            <p className="field-note">{note}</p>
+          </div>
+        ))}
+
+        <div className="house-note">
+          At this pace a hand takes <b>{hand(4).toFixed(0)}s</b> at a 4-seat table and{' '}
+          <b>{hand(8).toFixed(0)}s</b> at an 8-seat one. An 8-seat table deals twice as many
+          cards, so it always takes about twice as long.
+        </div>
+
+        <button className="btn" onClick={() => void save()}>
+          Save
+        </button>
+      </div>
+    </>
+  );
+}
+
 export function AdminPage() {
   const { profile } = useAuth();
-  const [tab, setTab] = useState<'tables' | 'players'>('tables');
+  const [tab, setTab] = useState<'tables' | 'players' | 'pace'>('tables');
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
@@ -406,9 +486,14 @@ export function AdminPage() {
         <button className={`chip ${tab === 'players' ? 'on' : ''}`} onClick={() => setTab('players')}>
           Players
         </button>
+        <button className={`chip ${tab === 'pace' ? 'on' : ''}`} onClick={() => setTab('pace')}>
+          Pace
+        </button>
       </div>
 
-      {tab === 'tables' ? <Tables /> : <Players />}
+      {tab === 'tables' && <Tables />}
+      {tab === 'players' && <Players />}
+      {tab === 'pace' && <Pace />}
     </>
   );
 }

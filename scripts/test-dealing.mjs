@@ -38,6 +38,10 @@ const faceUp = (view) =>
     (p.deals[view.deal - 1]?.cards ?? []).flatMap((c, i) => (c ? [`${p.seat}:${i + 1}`] : [])),
   );
 
+/** How many cards are on the felt in front of each seat, face down or up. */
+const onFelt = (view) =>
+  view.players.reduce((n, p) => n + (p.deals[view.deal - 1]?.laid ?? 0), 0);
+
 for (const seats of [4, 8]) {
   console.log(`\nA ${seats}-seat table`);
 
@@ -55,34 +59,39 @@ for (const seats of [4, 8]) {
   const roundId = (await one(`SELECT dh_deal($1) AS id`, [room.id])).id;
 
   const gap = Number((await one('SELECT dh_seat_gap() g')).g);
+  const flip = Number((await one('SELECT dh_flip_delay() f')).f);
+  const hold = Number((await one('SELECT dh_score_hold() h')).h);
   const len = Number((await one('SELECT dh_deal_len($1) l', [seats])).l);
 
-  check(`a deal is ${(seats * 3 * gap + 3.2).toFixed(1)}s: one flip per seat per card`,
-    Math.abs(len - (seats * 3 * gap + 3.2)) < 0.01, `${len}s`);
+  check(`a deal is ${(seats * 3 * gap + hold).toFixed(1)}s: one card per seat per card, then the scores`,
+    Math.abs(len - (seats * 3 * gap + hold)) < 0.01, `${len}s`);
 
-  // Nothing is face up before the dealer starts.
-  const t0 = await viewAt(room.id, roundId, 0);
-  check('at 0s nothing is face up', faceUp(t0).length === 0, faceUp(t0).join(' '));
+  // The whole point: a card is put down, sits face down, and only then turns.
+  const t0 = await viewAt(room.id, roundId, 0.15);
+  check('the first card is on the felt straight away', onFelt(t0) === 1, `${onFelt(t0)} cards`);
+  check('...but it is still face down', faceUp(t0).length === 0, faceUp(t0).join(' '));
 
-  // After the first flip, exactly one card is up -- seat 0's first.
-  const t1 = await viewAt(room.id, roundId, gap + 0.05);
-  check('the first card goes to the first seat, alone',
-    faceUp(t1).join() === '0:1', faceUp(t1).join(' ') || 'nothing');
+  const tJustBefore = await viewAt(room.id, roundId, flip - 0.15);
+  check('it stays face down for the whole pause', faceUp(tJustBefore).length === 0);
 
-  // After two flips: seat 0 and seat 1 each hold their first card, nobody a second.
-  const t2 = await viewAt(room.id, roundId, 2 * gap + 0.05);
+  const tJustAfter = await viewAt(room.id, roundId, flip + 0.15);
+  check('then it turns over', faceUp(tJustAfter).join() === '0:1', faceUp(tJustAfter).join(' '));
+  check('and the next player has nothing yet', onFelt(tJustAfter) === 1, `${onFelt(tJustAfter)}`);
+
+  // Card k (1, 2, 3...) is laid at (k-1)*gap and turns at (k-1)*gap + flip.
+  const turned = (k) => (k - 1) * gap + flip + 0.15;
+
+  const t2 = await viewAt(room.id, roundId, turned(2));
   check('then the next seat gets its first card',
     faceUp(t2).sort().join() === '0:1,1:1', faceUp(t2).sort().join(' '));
 
-  // Right after the last seat's first card: every seat has 1, nobody has 2.
-  const tRound1 = await viewAt(room.id, roundId, seats * gap + 0.05);
+  const tRound1 = await viewAt(room.id, roundId, turned(seats));
   const up1 = faceUp(tRound1);
   check('the dealer finishes the lap before starting the second card',
     up1.length === seats && up1.every((x) => x.endsWith(':1')),
     up1.sort().join(' '));
 
-  // One flip later, the second card starts back at the first seat.
-  const tNext = await viewAt(room.id, roundId, (seats + 1) * gap + 0.05);
+  const tNext = await viewAt(room.id, roundId, turned(seats + 1));
   check('the second card starts back at the first seat',
     faceUp(tNext).includes('0:2') &&
       faceUp(tNext).filter((x) => x.endsWith(':2')).length === 1,
@@ -90,17 +99,17 @@ for (const seats of [4, 8]) {
 
   // Mid-deal, no score has leaked -- the scores wait for the last card.
   const midScores = tNext.players.every((p) => p.deals[tNext.deal - 1].score === null);
-  check('no score is read out until every card has landed', midScores);
+  check('no score is read out until every card has turned', midScores);
 
-  // After the last flip of deal 1, everyone has 3 cards and a score.
-  const tScored = await viewAt(room.id, roundId, seats * 3 * gap + 0.1);
+  // After the last card of deal 1 turns, everyone has 3 cards and a score.
+  const tScored = await viewAt(room.id, roundId, turned(seats * 3) + 0.1);
   check('once the lap is done, every seat holds 3 cards',
     faceUp(tScored).length === seats * 3, `${faceUp(tScored).length} cards`);
   check('and only then are the scores shown',
     tScored.players.every((p) => p.deals[0].score !== null));
 
   // Deal 2 starts, and deal 1 stays face up behind it.
-  const tDeal2 = await viewAt(room.id, roundId, len + gap + 0.05);
+  const tDeal2 = await viewAt(room.id, roundId, len + flip + 0.15);
   check('deal 2 begins with the first seat',
     tDeal2.deal === 2 && tDeal2.players.find((p) => p.seat === 0).deals[1].cards[0] !== null,
     `deal=${tDeal2.deal}`);

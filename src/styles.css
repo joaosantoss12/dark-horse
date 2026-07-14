@@ -852,3 +852,18 @@ img.avatar { object-fit: cover; }
 .drawer-link.support { gap: 10px; color: var(--muted); }
 .drawer-link.support:active { background: rgba(255, 255, 255, 0.06); }
 
+
+/* A place at the table where a card has not been dealt yet. */
+.pc-slot {
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.12);
+}
+/* The card the dealer has just put down, before it turns. */
+.pc:not(.up) .pc-back { animation: card-deal 0.35s cubic-bezier(0.2, 0.9, 0.3, 1); }
+@keyframes card-deal {
+  from { transform: translate(14px, -22px) rotate(8deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc:not(.up) .pc-back { animation: none; }
+}

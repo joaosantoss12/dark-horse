@@ -47,8 +47,8 @@ function Dealer({ room, seated }: { room: Room; seated: boolean }) {
         </div>
         <div className="pt-sub">
           {done
-            ? 'Scoring…'
-            : `Dealing card ${Math.min(3, Math.floor(room.flips / room.seats) + 1)} · ${room.flips} of ${total}`}
+            ? 'Reading the scores…'
+            : `Card ${Math.min(3, Math.floor(Math.max(0, room.laid - 1) / room.seats) + 1)} of 3 · ${room.laid} of ${total} dealt`}
         </div>
       </>
     );

@@ -153,9 +153,16 @@ console.log('\nReading cards they should not see');
   check('the room view hides the scores before the reveal',
     view.players.every((p) => p.deals.every((d) => d.score === null) && p.place === null));
 
-  console.log('  ...waiting out the three deals');
-  // 5s shuffle + 3 deals x 10.4s = 36.2s before the hand settles.
-  await new Promise((r) => setTimeout(r, 39_000));
+  console.log('  ...winding the clock past the three deals');
+  // A hand is ~83s of table time now; wind it rather than sit through it.
+  await db.query(
+    `UPDATE rounds
+        SET dealt_at  = dealt_at  - ((dh_countdown() + 3 * dh_deal_len(seats) + 2) * interval '1 second'),
+            settle_at = settle_at - ((dh_countdown() + 3 * dh_deal_len(seats) + 2) * interval '1 second'),
+            reset_at  = reset_at  - ((dh_countdown() + 3 * dh_deal_len(seats) + 2) * interval '1 second')
+      WHERE room_id = $1 AND settled_at IS NULL`,
+    [room.id],
+  );
 
   const { data: done } = await cheat.rpc('dh_get_room', { p_room_id: room.id });
   check('after the final deal, every card is shown',

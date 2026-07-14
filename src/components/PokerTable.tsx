@@ -64,10 +64,16 @@ function Seat({
       }`}
       style={pos}
     >
-      {/* The three cards of the deal on the table. */}
+      {/* Only the cards the dealer has actually laid down are on the felt. One
+          that has landed but not yet turned shows its back. */}
       <div className="pt-hand">
-        {(current?.cards ?? [null, null, null]).map((card, i) => (
-          <PlayingCard key={i} card={card} size="sm" />
+        {[0, 1, 2].map((i) => (
+          <PlayingCard
+            key={i}
+            card={current?.cards[i] ?? null}
+            present={(current?.laid ?? 0) > i}
+            size="sm"
+          />
         ))}
       </div>
 

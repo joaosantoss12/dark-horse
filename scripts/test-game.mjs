@@ -165,10 +165,25 @@ console.log('\nA real dealt hand: three deals, then the winner');
   check('during the countdown no deal score is leaked',
     countdown.players.every((p) => p.deals.every((d) => d.score === null)));
 
-  console.log('  ...watching the three deals go by');
-  // The 5s shuffle comes first, then deal n runs from dealt_at + (n-1)*10.4s.
-  // 18s after dealing => ~13s elapsed => deal 2 is on the table.
-  await new Promise((r) => setTimeout(r, 18_000));
+  console.log('  ...winding the clock through the three deals');
+  // Real time would be ~83s a hand now. Wind the clock instead of sitting there.
+  const dealLen = Number((await one('SELECT dh_deal_len(4) l')).l);
+  const shift = async (seconds) => {
+    // settle_at and reset_at are stored, so the whole round has to move together
+    // or the hand sits mid-deal for ever.
+    await db.query(
+      `UPDATE rounds
+          SET dealt_at  = dealt_at  - ($2 * interval '1 second'),
+              settle_at = settle_at - ($2 * interval '1 second'),
+              reset_at  = reset_at  - ($2 * interval '1 second')
+        WHERE id = $1`,
+      [roundId, seconds],
+    );
+  };
+  // dealt_at starts in the FUTURE by the length of the shuffle, so the clock has
+  // to be wound past that before the first card is even on the table.
+  const shuffleSecs = Number((await one('SELECT dh_countdown() c')).c);
+  await shift(shuffleSecs + dealLen + 1);
 
   const mid = (await one(`SELECT dh_get_room($1) AS r`, [room.id])).r;
   check('the table moves on to deal 2', mid.deal === 2, `deal=${mid.deal} phase=${mid.phase}`);
@@ -181,9 +196,8 @@ console.log('\nA real dealt hand: three deals, then the winner');
     mid.players.every((p) => p.totalValue ===
       p.deals.filter((d) => d.value !== null).reduce((a, d) => a + d.value, 0)));
 
-  console.log('  ...waiting for the final reveal');
-  // settle_at is dealt_at + 31.2s, i.e. ~36.2s after the deal was made.
-  await new Promise((r) => setTimeout(r, 21_000));
+  console.log('  ...winding on to the final reveal');
+  await shift(2 * dealLen + 2);
 
   const done = (await one(`SELECT dh_get_room($1) AS r`, [room.id])).r;
   check('after three deals the phase is results', done.phase === 'results', done.phase);

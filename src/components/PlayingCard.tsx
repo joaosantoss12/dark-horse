@@ -9,9 +9,24 @@ const SUITS: Record<string, string> = { S: '♠', H: '♥', D: '♦', C: '♣' }
 
 export const cardText = (card: Card) => `${RANKS[card.r]}${SUITS[card.s]}`;
 
-/** A null card has not been turned over yet, so it shows its back. */
-export function PlayingCard({ card, size = 'md' }: { card: Card | null; size?: 'sm' | 'md' }) {
+/**
+ * A card in one of three states:
+ *   - not dealt yet (`present` false): an empty space on the felt
+ *   - dealt, face down (`card` null): the back of a card
+ *   - turned over: the face
+ */
+export function PlayingCard({
+  card,
+  size = 'md',
+  present = true,
+}: {
+  card: Card | null;
+  size?: 'sm' | 'md';
+  present?: boolean;
+}) {
   const red = card?.s === 'H' || card?.s === 'D';
+
+  if (!present) return <div className={`pc pc-${size} pc-slot`} />;
 
   return (
     <div className={`pc pc-${size} ${card ? 'up' : ''}`}>

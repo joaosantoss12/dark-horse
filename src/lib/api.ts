@@ -12,6 +12,12 @@ export interface Deal {
   dealNo: number;
   /** A card the dealer has not turned over yet arrives as null. */
   cards: (Card | null)[];
+  /**
+   * How many cards are physically in front of this player -- face down or face
+   * up. A card that has landed but not yet turned is drawn as a card back; one
+   * that has not landed is not drawn at all.
+   */
+  laid: number;
   /** Only set once this deal's third card is face up. */
   score: number | null;
   /** What the deal is worth: its score, or 11 for a Crown, 12 for Three of a Kind. */
@@ -45,8 +51,10 @@ export interface Room {
   phase: Phase;
   /** Which of the three deals is on the table (1-3), or 0 while waiting. */
   deal: number;
-  /** Cards the dealer has laid down in this deal, across every seat. */
+  /** Cards turned face up in this deal, across every seat. */
   flips: number;
+  /** Cards laid down in this deal, across every seat (some still face down). */
+  laid: number;
   /** How many cards every seat is holding (0-3). */
   revealed: number;
   /** The seat the dealer is serving right now, or null between laps. */
@@ -325,13 +333,18 @@ export const api = {
         }),
       );
     },
-    async setFreeHandsPerDay(n: number) {
+    async setSetting(key: string, value: number) {
       return unwrap(
-        await supabase.rpc('dh_admin_set_setting', {
-          p_key: 'free_hands_per_day',
-          p_value: n,
-        }),
+        await supabase.rpc('dh_admin_set_setting', { p_key: key, p_value: value }),
       );
+    },
+    async settings() {
+      const { data, error } = await supabase.from('settings').select('key, value');
+      if (error) throw new Error(clean(error.message));
+      return Object.fromEntries((data ?? []).map((r) => [r.key, Number(r.value)])) as Record<
+        string,
+        number
+      >;
     },
   },
 };
