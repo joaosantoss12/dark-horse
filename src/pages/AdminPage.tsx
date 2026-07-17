@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Modal } from '../components/Modal';
 import { api, type Mode } from '../lib/api';
-import { money } from '../lib/money';
+import { cash, money } from '../lib/money';
 import { useAuth } from '../lib/useAuth';
 
 interface RoomRow {
@@ -278,6 +278,7 @@ interface PlayerRow {
   display_name: string;
   email: string;
   balance: number;
+  cash_balance: number;
   is_admin: boolean;
   is_banned: boolean;
 }
@@ -307,11 +308,34 @@ function Players() {
   };
 
   const custom = async (id: string) => {
-    const input = window.prompt('Amount to add in $ (use a negative number to take it away):');
+    const input = window.prompt('Free-play POINTS to add (negative to remove):');
     if (!input) return;
     const amount = Number(input);
     if (!Number.isInteger(amount) || amount === 0) return;
     await adjust(id, amount);
+  };
+
+  // Real money, in dollars-and-cents. Stored as cents.
+  const adjustCash = async (player: PlayerRow) => {
+    const input = window.prompt(
+      `REAL MONEY for ${player.display_name} (currently ${cash(player.cash_balance)}).
+
+` +
+        'Enter dollars to add, e.g. 20 or 12.50. Use a negative number for a withdrawal.',
+    );
+    if (!input) return;
+    const dollars = Number(input);
+    if (!Number.isFinite(dollars) || dollars === 0) return;
+
+    // Dollars -> cents, rounded so 12.505 cannot smuggle in a third decimal.
+    const cents = Math.round(dollars * 100);
+    setError(null);
+    try {
+      await api.admin.adjustCash(player.id, cents, 'Admin panel');
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not adjust the real-money balance.');
+    }
   };
 
   const toggleBan = async (player: PlayerRow) => {
@@ -347,14 +371,26 @@ function Players() {
                 {player.is_banned && <span className="tag danger">Banned</span>}
               </div>
               <div className="row-sub">
-                {player.email} · <b>{money(player.balance)}</b>
+                {player.email}
+              </div>
+              <div className="row-sub">
+                Points <b>{money(player.balance)}</b> · Real money{' '}
+                <b className="gold">{cash(player.cash_balance)}</b>
               </div>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => adjust(player.id, 500)}>
-              +$500
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => custom(player.id)}
+              title="Adjust free-play points"
+            >
+              ± pts
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => custom(player.id)}>
-              ±
+            <button
+              className="btn btn-sm"
+              onClick={() => adjustCash(player)}
+              title="Adjust real-money balance"
+            >
+              ± $
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => toggleBan(player)}>
               {player.is_banned ? 'Unban' : 'Ban'}
@@ -446,14 +482,117 @@ function Pace() {
   );
 }
 
+interface PaymentRow {
+  id: number;
+  user_id: string;
+  display_name: string;
+  email: string;
+  kind: 'deposit' | 'withdraw';
+  method: string;
+  status: string;
+  cash_balance: number;
+  created_at: string;
+}
+
+/**
+ * The deposit / withdraw queue. Each row is a player who tapped deposit or
+ * withdraw and was sent to Telegram. Settle the crypto there, credit or debit
+ * their cash on the Players tab, then mark it done here.
+ */
+function Payments() {
+  const [rows, setRows] = useState<PaymentRow[]>([]);
+  const [includeDone, setIncludeDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    api.admin
+      .paymentRequests(includeDone)
+      .then((r) => setRows(r as PaymentRow[]))
+      .catch((err) => setError(err.message));
+  }, [includeDone]);
+
+  useEffect(load, [load]);
+
+  const resolve = async (id: number, status: 'done' | 'cancelled' | 'open') => {
+    setError(null);
+    try {
+      await api.admin.resolvePayment(id, status);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update that request.');
+    }
+  };
+
+  return (
+    <>
+      {error && <div className="error">{error}</div>}
+
+      <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
+        Nothing here moves money. A player tapped deposit or withdraw and was sent to
+        <b> @DH_Support</b>. Settle the crypto there, adjust their real-money balance on the
+        Players tab, then mark it done.
+      </p>
+
+      <label className="check" style={{ marginBottom: 12 }}>
+        <input
+          type="checkbox"
+          checked={includeDone}
+          onChange={(e) => setIncludeDone(e.target.checked)}
+        />
+        Show handled requests too
+      </label>
+
+      <div className="panel">
+        {rows.length === 0 && <div className="muted">No requests waiting.</div>}
+
+        {rows.map((r) => (
+          <div key={r.id} className="row">
+            <div className="row-main">
+              <div className="row-title">
+                {r.display_name}
+                <span className={`tag ${r.kind === 'deposit' ? '' : 'muted-tag'}`}>{r.kind}</span>
+                {r.status !== 'open' && <span className="tag muted-tag">{r.status}</span>}
+              </div>
+              <div className="row-sub">
+                {r.email} · holds <b className="gold">{cash(r.cash_balance)}</b> ·{' '}
+                {new Date(r.created_at).toLocaleString()}
+              </div>
+            </div>
+
+            {r.status === 'open' ? (
+              <>
+                <button className="btn btn-sm" onClick={() => void resolve(r.id, 'done')}>
+                  Mark done
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => void resolve(r.id, 'cancelled')}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button className="btn btn-ghost btn-sm" onClick={() => void resolve(r.id, 'open')}>
+                Reopen
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function AdminPage() {
   const { profile } = useAuth();
-  const [tab, setTab] = useState<'tables' | 'players' | 'pace'>('tables');
+  const [tab, setTab] = useState<'tables' | 'players' | 'payments' | 'pace'>('tables');
   const [stats, setStats] = useState<any>(null);
+  const [openPayments, setOpenPayments] = useState(0);
 
   useEffect(() => {
     void api.admin.stats().then(setStats).catch(() => { });
-  }, []);
+    void api.admin.openPaymentCount().then(setOpenPayments).catch(() => { });
+  }, [tab]);
 
   if (!profile?.is_admin) {
     return <div className="empty">This page is for admins.</div>;
@@ -488,6 +627,10 @@ export function AdminPage() {
         <button className={`chip ${tab === 'players' ? 'on' : ''}`} onClick={() => setTab('players')}>
           Players
         </button>
+        <button className={`chip ${tab === 'payments' ? 'on' : ''}`} onClick={() => setTab('payments')}>
+          Payments
+          {openPayments > 0 && <span className="chip-badge">{openPayments}</span>}
+        </button>
         <button className={`chip ${tab === 'pace' ? 'on' : ''}`} onClick={() => setTab('pace')}>
           Pace
         </button>
@@ -495,6 +638,7 @@ export function AdminPage() {
 
       {tab === 'tables' && <Tables />}
       {tab === 'players' && <Players />}
+      {tab === 'payments' && <Payments />}
       {tab === 'pace' && <Pace />}
     </>
   );

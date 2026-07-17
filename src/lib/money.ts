@@ -21,3 +21,16 @@ export function moneySigned(amount: number): string {
   if (amount < 0) return `-${money(Math.abs(amount))}`;
   return money(0);
 }
+
+/**
+ * The real-money balance is held in cents, so it can carry $12.50 without the
+ * floating-point rounding that would eventually lose a cent. Shown to two
+ * decimals unless it is a whole dollar.
+ */
+export function cash(cents: number | null | undefined): string {
+  const dollars = (cents ?? 0) / 100;
+  return `$${dollars.toLocaleString(undefined, {
+    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
+}

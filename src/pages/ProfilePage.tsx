@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PlayingCard } from '../components/PlayingCard';
 import { api, MAX_AVATAR_BYTES, type Stats } from '../lib/api';
 import { money, moneyGain, moneySigned } from '../lib/money';
+import { Wallet } from '../components/Wallet';
 import { useAuth } from '../lib/useAuth';
 
 const HAND_LABEL: Record<number, string> = { 2: 'Three of a Kind', 1: 'Crown' };
@@ -102,6 +103,8 @@ export function ProfilePage() {
 
   return (
     <>
+      <Wallet />
+
       <div className="section-title">Profile</div>
 
       {error && <div className="error">{error}</div>}

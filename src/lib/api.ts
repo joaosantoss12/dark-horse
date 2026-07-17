@@ -72,7 +72,10 @@ export interface Profile {
   id: string;
   display_name: string;
   avatar_url: string | null;
+  /** Free-play balance, in points. */
   balance: number;
+  /** Real-money balance, in cents. Divide by 100 to show dollars. */
+  cash_balance: number;
   is_admin: boolean;
   is_banned: boolean;
   /** Null until the player has seen and accepted the rules. */
@@ -200,7 +203,7 @@ export const api = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, balance, is_admin, is_banned, rules_accepted_at')
+      .select('id, display_name, avatar_url, balance, cash_balance, is_admin, is_banned, rules_accepted_at')
       .eq('id', userId)
       .single();
 
@@ -218,6 +221,11 @@ export const api = {
 
   async acceptRules(): Promise<string> {
     return unwrap(await supabase.rpc('dh_accept_rules'));
+  },
+
+  /** Logs that the player wants to deposit or withdraw. Moves no money. */
+  async requestPayment(kind: 'deposit' | 'withdraw') {
+    return unwrap(await supabase.rpc('dh_request_payment', { p_kind: kind }));
   },
 
   async updateProfile(displayName: string, avatarUrl: string | null) {
@@ -300,6 +308,24 @@ export const api = {
           p_note: note,
         }),
       );
+    },
+    async adjustCash(userId: string, cents: number, note: string) {
+      return unwrap<number>(
+        await supabase.rpc('dh_admin_adjust_cash', {
+          p_user_id: userId, p_cents: cents, p_note: note,
+        }),
+      );
+    },
+    async paymentRequests(includeDone = false) {
+      return unwrap(
+        await supabase.rpc('dh_admin_payment_requests', { p_include_done: includeDone }),
+      ) ?? [];
+    },
+    async resolvePayment(id: number, status: 'done' | 'cancelled' | 'open') {
+      return unwrap(await supabase.rpc('dh_admin_resolve_payment', { p_id: id, p_status: status }));
+    },
+    async openPaymentCount(): Promise<number> {
+      return unwrap(await supabase.rpc('dh_admin_open_payment_count')) ?? 0;
     },
     async setBanned(userId: string, banned: boolean) {
       return unwrap(await supabase.rpc('dh_admin_set_banned', { p_user_id: userId, p_banned: banned }));

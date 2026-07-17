@@ -5,6 +5,7 @@ import { RulesGate } from './components/RulesGate';
 import { SUPPORT_URL, SupportLink, TelegramIcon } from './components/Support';
 import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
 import { money } from './lib/money';
+import { startNotifier } from './lib/notify';
 import { AuthProvider, useAuth } from './lib/useAuth';
 import { AdminPage } from './pages/AdminPage';
 import { AuthPage } from './pages/AuthPage';
@@ -17,6 +18,14 @@ function Shell() {
   const { profile, signOut } = useAuth();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Watches every table for the whole session, from whatever page you are on --
+  // not just the lobby. A player who is told a game is forming while looking at
+  // their profile is exactly the player this is for.
+  useEffect(() => {
+    if (!profile?.id) return;
+    return startNotifier(profile.id);
+  }, [profile?.id]);
 
   // Navigating is the whole point of the menu, so it must close when you do.
   useEffect(() => setMenuOpen(false), [pathname]);

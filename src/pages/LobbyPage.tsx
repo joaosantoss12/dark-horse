@@ -146,7 +146,7 @@ function NotifyToggle() {
 
 export function LobbyPage() {
   const { profile } = useAuth();
-  const { rooms, error } = useTables(undefined, profile?.id);
+  const { rooms, error } = useTables();
   const [limits, setLimits] = useState<Limits | null>(null);
 
   // The count only moves when a hand is dealt, so refreshing it with the lobby

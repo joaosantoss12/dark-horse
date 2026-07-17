@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   api, getCached, seedRoomsFromLobby, setCached, takeLobbyPrefetch, watchTables, type Room,
 } from './api';
-import { watchForFillingTables } from './notify';
 import { timed } from './perf';
 
 /**
@@ -18,7 +17,7 @@ import { timed } from './perf';
  * The first render comes from the in-memory cache when there is one, so coming
  * back to the lobby is instant instead of blanking out for a round trip.
  */
-export function useTables(roomId?: number, youId?: string) {
+export function useTables(roomId?: number) {
   const key = roomId ? `room:${roomId}` : 'lobby';
 
   const [rooms, setRooms] = useState<Room[] | null>(() => getCached(key));
@@ -38,10 +37,7 @@ export function useTables(roomId?: number, youId?: string) {
       setCached(key, next);
       // One lobby response describes every table, so opening one needs no
       // request of its own.
-      if (!roomId) {
-        seedRoomsFromLobby(next);
-        if (youId) watchForFillingTables(next, youId);
-      }
+      if (!roomId) seedRoomsFromLobby(next);
       setRooms(next);
       setError(null);
     };
@@ -97,7 +93,7 @@ export function useTables(roomId?: number, youId?: string) {
       clearInterval(ticker);
       clearInterval(slow);
     };
-  }, [roomId, key, youId]);
+  }, [roomId, key]);
 
   return { rooms, error };
 }
