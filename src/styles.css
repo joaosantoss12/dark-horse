@@ -1028,3 +1028,28 @@ img.avatar { object-fit: cover; }
 @media (max-width: 560px) {
   .wallet { grid-template-columns: 1fr; }
 }
+
+/* ---------- confirm / prompt dialogs ---------- */
+.dialog-body { font-size: 14px; margin-bottom: 16px; }
+.dialog-body p { margin-bottom: 10px; }
+.dialog-body p:last-child { margin-bottom: 0; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.btn-danger {
+  background: linear-gradient(180deg, #d66, #b34a4a); color: #fff;
+}
+.btn-danger:hover:not(:disabled) { filter: brightness(1.06); }
+
+/* ---------- two balances in the top bar ---------- */
+.balances { display: flex; align-items: center; gap: 6px; flex: none; }
+.balance.cash {
+  background: linear-gradient(180deg, #21365a, #131c2c);
+  border-color: #37527d;
+}
+.balance.cash .balance-value { color: #cfe0ff; }
+
+@media (max-width: 640px) {
+  /* Keep both, but tighten so the bar still fits one row on a phone. */
+  .balances { gap: 4px; }
+  .balance { padding: 6px 9px; }
+  .balance-value { font-size: 13px; }
+}

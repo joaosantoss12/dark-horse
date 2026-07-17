@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { ConfirmDialog, PromptDialog } from '../components/Dialog';
 import { Modal } from '../components/Modal';
 import { api, type Mode } from '../lib/api';
 import { cash, money } from '../lib/money';
@@ -171,6 +172,7 @@ function RoomEditor({ initial, onDone }: { initial: RoomForm; onDone: () => void
 function Tables() {
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [editing, setEditing] = useState<RoomForm | null>(null);
+  const [removing, setRemoving] = useState<RoomRow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -183,21 +185,7 @@ function Tables() {
 
   useEffect(load, [load]);
 
-  // The confirmation has to say what will actually happen, and that depends on
-  // whether the table has been played.
-  const remove = async (room: RoomRow) => {
-    const played = Number(room.rounds_played);
-
-    const warning = played
-      ? `"${room.name}" has ${played} hand${played === 1 ? '' : 's'} of history.\n\n` +
-      'It will be retired: removed from the lobby and from this list, but its ' +
-      'rounds stay in the database so History and the ledger still make sense. ' +
-      'Deleting them outright would erase the record behind every prize ever ' +
-      'paid at this table.\n\nRetire it?'
-      : `"${room.name}" has never been played, so it will be deleted outright.\n\nDelete it?`;
-
-    if (!window.confirm(warning)) return;
-
+  const doRemove = async (room: RoomRow) => {
     setError(null);
     try {
       const result = await api.admin.deleteRoom(room.id);
@@ -263,12 +251,41 @@ function Tables() {
             >
               Edit
             </button>
-            <button className="btn btn-ghost btn-sm danger" onClick={() => void remove(room)}>
+            <button className="btn btn-ghost btn-sm danger" onClick={() => setRemoving(room)}>
               Delete
             </button>
           </div>
         ))}
       </div>
+
+      {removing && (
+        <ConfirmDialog
+          title={Number(removing.rounds_played) > 0 ? 'Retire this table?' : 'Delete this table?'}
+          tone="danger"
+          confirmLabel={Number(removing.rounds_played) > 0 ? 'Retire' : 'Delete'}
+          body={
+            Number(removing.rounds_played) > 0 ? (
+              <>
+                <p>
+                  <b>{removing.name}</b> has {removing.rounds_played} hand
+                  {Number(removing.rounds_played) === 1 ? '' : 's'} of history.
+                </p>
+                <p>
+                  It will be <b>retired</b> — removed from the lobby and this list, but its rounds
+                  stay in the database so History and the ledger still make sense. Deleting them
+                  outright would erase the record behind every prize ever paid here.
+                </p>
+              </>
+            ) : (
+              <p>
+                <b>{removing.name}</b> has never been played, so it will be deleted outright.
+              </p>
+            )
+          }
+          onConfirm={() => doRemove(removing)}
+          onClose={() => setRemoving(null)}
+        />
+      )}
     </>
   );
 }
@@ -287,6 +304,10 @@ function Players() {
   const [players, setPlayers] = useState<PlayerRow[]>([]);
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // Which player, and which balance, an adjust dialog is open for.
+  const [adjusting, setAdjusting] = useState<{ player: PlayerRow; kind: 'points' | 'cash' } | null>(
+    null,
+  );
 
   const load = useCallback(() => {
     api.admin
@@ -297,45 +318,15 @@ function Players() {
 
   useEffect(load, [load]);
 
-  const adjust = async (id: string, amount: number) => {
-    setError(null);
-    try {
-      await api.admin.adjust(id, amount, 'Admin panel');
-      load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not adjust that balance.');
-    }
+  const applyPoints = async (id: string, value: string) => {
+    await api.admin.adjust(id, Number(value), 'Admin panel');
+    load();
   };
 
-  const custom = async (id: string) => {
-    const input = window.prompt('Free-play POINTS to add (negative to remove):');
-    if (!input) return;
-    const amount = Number(input);
-    if (!Number.isInteger(amount) || amount === 0) return;
-    await adjust(id, amount);
-  };
-
-  // Real money, in dollars-and-cents. Stored as cents.
-  const adjustCash = async (player: PlayerRow) => {
-    const input = window.prompt(
-      `REAL MONEY for ${player.display_name} (currently ${cash(player.cash_balance)}).
-
-` +
-        'Enter dollars to add, e.g. 20 or 12.50. Use a negative number for a withdrawal.',
-    );
-    if (!input) return;
-    const dollars = Number(input);
-    if (!Number.isFinite(dollars) || dollars === 0) return;
-
+  const applyCash = async (id: string, value: string) => {
     // Dollars -> cents, rounded so 12.505 cannot smuggle in a third decimal.
-    const cents = Math.round(dollars * 100);
-    setError(null);
-    try {
-      await api.admin.adjustCash(player.id, cents, 'Admin panel');
-      load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not adjust the real-money balance.');
-    }
+    await api.admin.adjustCash(id, Math.round(Number(value) * 100), 'Admin panel');
+    load();
   };
 
   const toggleBan = async (player: PlayerRow) => {
@@ -380,14 +371,14 @@ function Players() {
             </div>
             <button
               className="btn btn-ghost btn-sm"
-              onClick={() => custom(player.id)}
+              onClick={() => setAdjusting({ player, kind: 'points' })}
               title="Adjust free-play points"
             >
               ± pts
             </button>
             <button
               className="btn btn-sm"
-              onClick={() => adjustCash(player)}
+              onClick={() => setAdjusting({ player, kind: 'cash' })}
               title="Adjust real-money balance"
             >
               ± $
@@ -398,6 +389,51 @@ function Players() {
           </div>
         ))}
       </div>
+
+      {adjusting?.kind === 'points' && (
+        <PromptDialog
+          title={`Adjust points · ${adjusting.player.display_name}`}
+          body={
+            <p className="muted">
+              Currently <b>{money(adjusting.player.balance)}</b> in free-play points. Enter a
+              positive number to add, negative to remove.
+            </p>
+          }
+          label="Points"
+          type="number"
+          placeholder="e.g. 500 or -100"
+          confirmLabel="Apply"
+          validate={(v) =>
+            !Number.isInteger(Number(v)) || Number(v) === 0
+              ? 'Enter a whole, non-zero number of points.'
+              : null
+          }
+          onSubmit={(v) => applyPoints(adjusting.player.id, v)}
+          onClose={() => setAdjusting(null)}
+        />
+      )}
+
+      {adjusting?.kind === 'cash' && (
+        <PromptDialog
+          title={`Adjust real money · ${adjusting.player.display_name}`}
+          body={
+            <p className="muted">
+              Currently <b className="gold">{cash(adjusting.player.cash_balance)}</b>. Enter dollars
+              to add (e.g. <b>20</b> or <b>12.50</b>), or a negative number for a withdrawal. Only do
+              this once the crypto has actually settled on Telegram.
+            </p>
+          }
+          label="Amount ($)"
+          type="number"
+          placeholder="e.g. 20 or 12.50"
+          confirmLabel="Apply"
+          validate={(v) =>
+            !Number.isFinite(Number(v)) || Number(v) === 0 ? 'Enter a non-zero dollar amount.' : null
+          }
+          onSubmit={(v) => applyCash(adjusting.player.id, v)}
+          onClose={() => setAdjusting(null)}
+        />
+      )}
     </>
   );
 }

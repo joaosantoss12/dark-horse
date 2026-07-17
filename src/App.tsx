@@ -4,7 +4,7 @@ import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react
 import { RulesGate } from './components/RulesGate';
 import { SUPPORT_URL, SupportLink, TelegramIcon } from './components/Support';
 import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
-import { money } from './lib/money';
+import { cash, money } from './lib/money';
 import { startNotifier } from './lib/notify';
 import { AuthProvider, useAuth } from './lib/useAuth';
 import { AdminPage } from './pages/AdminPage';
@@ -97,8 +97,14 @@ function Shell() {
             <TelegramIcon />
           </a>
 
-          <div className="balance" title={`${money(profile.balance)} balance`}>
-            <span className="balance-value">{money(profile.balance)}</span>
+          <div className="balances">
+            <div className="balance cash" title="Real-money balance">
+              <span className="balance-value">{cash(profile.cash_balance)}</span>
+            </div>
+            <div className="balance" title="Free-play points">
+              <span className="balance-value">{money(profile.balance)}</span>
+              <span className="balance-unit">pts</span>
+            </div>
           </div>
 
           <Link
@@ -149,7 +155,9 @@ function Shell() {
                 )}
                 <div>
                   <div className="drawer-name">{profile.display_name}</div>
-                  <div className="drawer-balance">{money(profile.balance)}</div>
+                  <div className="drawer-balance">
+                    {cash(profile.cash_balance)} · {money(profile.balance)} pts
+                  </div>
                 </div>
               </div>
 
