@@ -22,9 +22,11 @@ function TableCard({ room, youId, locked }: { room: Room; youId: string; locked:
   const card = (
     <>
       <div className="table-card-top">
-        <span className="table-name">{room.name}</span>
+        <span className="mode-chip">{room.mode === 'cash' ? '💵 Real money' : '🎮 Free play'}</span>
         <span className={tag.className}>{tag.text}</span>
       </div>
+
+      <div className="table-name">{room.name}</div>
 
       <div className="table-meta">
         <div>
@@ -94,9 +96,21 @@ function Section({
   const outOfHands = mode === 'free' && limits != null && limits.freeHandsLeft <= 0;
 
   return (
-    <section className="mode-section">
+    <section className={`mode-section ${mode}`}>
       <div className="mode-head">
-        <div className="section-title">{mode === 'free' ? 'Free tables' : 'Real money'}</div>
+        <div className="mode-title">
+          <span className="mode-title-icon">{mode === 'free' ? '🎮' : '💵'}</span>
+          <div>
+            <div className="mode-title-name">
+              {mode === 'free' ? 'Free Play' : 'Real Money'}
+            </div>
+            <div className="mode-title-sub">
+              {mode === 'free'
+                ? 'Play for points. No cash value.'
+                : 'Play with your real-money balance.'}
+            </div>
+          </div>
+        </div>
 
         {mode === 'free' && limits && (
           <div className={`hands-left ${outOfHands ? 'spent' : ''}`}>

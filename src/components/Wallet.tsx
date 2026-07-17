@@ -54,14 +54,27 @@ function PaymentModal({ flow, onClose }: { flow: Flow; onClose: () => void }) {
 
         <div className="pay-methods">
           <div className="pay-methods-label">Accepted methods</div>
+
           <div className="pay-method">
-            <span className="pay-method-icon">₿</span>
+            <span className="pay-method-icon crypto">₿</span>
             <div>
               <div className="pay-method-name">Cryptocurrency</div>
-              <div className="pay-method-note">BTC, ETH, USDT and more — ask on Telegram</div>
+              <div className="pay-method-note">BTC, ETH, USDT and more</div>
             </div>
           </div>
-          <p className="muted pay-more">More methods coming soon.</p>
+
+          <div className="pay-method">
+            <span className="pay-method-icon bank">🏦</span>
+            <div>
+              <div className="pay-method-name">Bank transfer</div>
+              <div className="pay-method-note">Local banking options in many countries</div>
+            </div>
+          </div>
+
+          <p className="muted pay-more">
+            We support deposits and withdrawals worldwide. Fast, secure transactions for everyone —
+            ask on Telegram which options are available in your country.
+          </p>
         </div>
 
         <a
