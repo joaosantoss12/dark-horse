@@ -139,7 +139,7 @@ function NotifyToggle() {
 
   return (
     <button className={`notify-toggle ${on ? 'on' : ''}`} onClick={() => void toggle()}>
-      {on ? '🔔 Alerts on' : '🔕 Alert me when a table fills'}
+      {on ? '🔔 Alerts on' : '🔕 Alert me when a player joins a table'}
     </button>
   );
 }
