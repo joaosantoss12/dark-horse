@@ -692,11 +692,20 @@ img.avatar { object-fit: cover; }
 .pt-won.zero { color: rgba(245, 239, 230, 0.3); }
 
 .table-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.table-head .back { margin: 0; width: auto; }
-.table-title { font-weight: 800; font-size: 17px; margin-left: auto; }
+.table-head .back { margin: 0; width: auto; flex: none; }
+.table-title {
+  font-weight: 800; font-size: 17px; margin-left: auto;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
 @media (max-width: 640px) {
-  .pt { aspect-ratio: 3 / 4; max-width: none; }
+  /* Belt-and-braces height floor: the felt's own height comes entirely from
+     `aspect-ratio` because every visible piece inside it (`.pt-felt`,
+     `.pt-centre`, every `.pt-seat`) is `position: absolute` and so never
+     contributes to it. If that ratio is ever unavailable, `.pt` collapses to
+     0 height and every seat/status text renders piled on top of whatever
+     sits next in the page instead of below it. */
+  .pt { aspect-ratio: 3 / 4; max-width: none; min-height: 380px; }
   .pt-felt { inset: 10% 4%; }
   .pt-seat { width: 92px; gap: 3px; }
   .pt-chair { padding: 5px 6px; border-radius: 9px; }
@@ -1293,7 +1302,7 @@ img.avatar { object-fit: cover; }
 /* ---------- floating chat ---------- */
 .fchat-launcher {
   position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  z-index: 50;
+  z-index: 90;
   display: inline-flex; align-items: center; gap: 6px;
   padding: 11px 16px; border-radius: 999px;
   background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color: #2a1d08;
@@ -1307,7 +1316,7 @@ img.avatar { object-fit: cover; }
 
 .fchat {
   position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  z-index: 50; width: 320px;
+  z-index: 90; width: 320px;
   display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
   box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
