@@ -39,8 +39,11 @@ export function FloatingChat({ roomId, title }: { roomId: number | null; title: 
     if (open) setUnread(false);
   }, [open, openKey]);
 
-  // Drag the panel by its header, clamped to the viewport.
+  // Drag the panel by its header, clamped to the viewport. A pointerdown on the
+  // controls must NOT start a drag -- capturing the pointer here would swallow
+  // the button's click, which is why collapse/close appeared dead.
   const onPointerDown = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest('.fchat-controls')) return;
     const panel = (e.currentTarget as HTMLElement).closest('.fchat') as HTMLElement;
     const rect = panel.getBoundingClientRect();
     drag.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
