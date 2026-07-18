@@ -1377,11 +1377,15 @@ img.avatar { object-fit: cover; }
 .table-side .section-title { margin-top: 4px; }
 
 @media (max-width: 860px) {
-  .table-layout { display: flex; flex-direction: column; gap: 14px; }
+  /* `align-items: center` (instead of the flex default `stretch`) so the felt,
+     the buttons and the prize strip sit as one centered column rather than
+     stretching edge-to-edge -- capped at 420px so they read as a single card
+     instead of sprawling on a wide phone/tablet. */
+  .table-layout { display: flex; flex-direction: column; align-items: center; gap: 14px; }
   /* Controls above the felt on a phone, so the join button is the first thing
      you reach rather than being buried under a tall table. */
-  .table-side { position: static; order: -1; }
-  .table-main { order: 0; }
+  .table-side { position: static; order: -1; width: 100%; max-width: 420px; }
+  .table-main { order: 0; width: 100%; max-width: 420px; }
 }
 
 .notify-controls { display: flex; gap: 6px; align-items: center; }
