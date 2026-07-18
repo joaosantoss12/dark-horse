@@ -8,10 +8,9 @@ import { useAuth } from '../lib/useAuth';
 
 type Flow = 'deposit' | 'withdraw';
 
-// The funnel thresholds, mirrored from the DB settings for display. The database
-// is the source of truth; these are only for the progress bars.
-const DEMO_GOAL_CENTS = 3000; // $30 demo -> real bonus
-const WITHDRAW_GOAL_CENTS = 5000; // $50 real -> withdraw unlocks
+// The funnel threshold, mirrored from the DB settings for display. The database
+// is the source of truth; this is only for the progress bar.
+const DEMO_WITHDRAW_GOAL_CENTS = 10000; // $100 demo -> converts to real money, withdraw unlocks
 
 const COPY: Record<Flow, { title: string; verb: string; line: string }> = {
   deposit: {
@@ -98,8 +97,10 @@ export function Wallet() {
 
   const canWithdraw = profile.withdraw_unlocked && profile.cash_balance > 0;
 
-  const demoPct = Math.min(100, Math.round((profile.demo_balance / DEMO_GOAL_CENTS) * 100));
-  const cashPct = Math.min(100, Math.round((profile.cash_balance / WITHDRAW_GOAL_CENTS) * 100));
+  const demoPct = Math.min(
+    100,
+    Math.round((profile.demo_balance / DEMO_WITHDRAW_GOAL_CENTS) * 100),
+  );
 
   return (
     <>
@@ -110,19 +111,17 @@ export function Wallet() {
         <div className="wallet-chip cash">
           <div className="wallet-chip-label">Real money</div>
           <div className="wallet-chip-amount">{cash(profile.cash_balance)}</div>
-          {!profile.withdraw_unlocked && (
-            <div className="wallet-chip-bar" title={`${cash(profile.cash_balance)} / ${cash(WITHDRAW_GOAL_CENTS)} to withdraw`}>
-              <span style={{ width: `${cashPct}%` }} />
-            </div>
-          )}
         </div>
 
         {/* Demo */}
         <div className="wallet-chip demo">
           <div className="wallet-chip-label">Demo</div>
           <div className="wallet-chip-amount">{cash(profile.demo_balance)}</div>
-          {!profile.demo_bonus_awarded && (
-            <div className="wallet-chip-bar" title={`${cash(profile.demo_balance)} / ${cash(DEMO_GOAL_CENTS)} for a real bonus`}>
+          {!profile.withdraw_unlocked && (
+            <div
+              className="wallet-chip-bar"
+              title={`${cash(profile.demo_balance)} / ${cash(DEMO_WITHDRAW_GOAL_CENTS)} to withdraw`}
+            >
               <span style={{ width: `${demoPct}%` }} />
             </div>
           )}
@@ -145,7 +144,7 @@ export function Wallet() {
           disabled={!canWithdraw}
           title={
             !profile.withdraw_unlocked
-              ? `Grow real winnings to ${cash(WITHDRAW_GOAL_CENTS)} to unlock withdrawals`
+              ? `Grow your demo balance to ${cash(DEMO_WITHDRAW_GOAL_CENTS)} to unlock withdrawals`
               : profile.cash_balance <= 0
                 ? 'Nothing to withdraw yet'
                 : undefined
@@ -154,7 +153,9 @@ export function Wallet() {
           Withdraw
         </button>
         {!profile.withdraw_unlocked && (
-          <span className="wallet-hint">Withdrawals unlock at {cash(WITHDRAW_GOAL_CENTS)}</span>
+          <span className="wallet-hint">
+            Grow demo to {cash(DEMO_WITHDRAW_GOAL_CENTS)} to unlock withdrawals
+          </span>
         )}
       </div>
 

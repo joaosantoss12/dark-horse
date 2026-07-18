@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { api } from '../lib/api';
-import { cash, money } from '../lib/money';
+import { cash } from '../lib/money';
 
 /** Five levels, a new one every 100 games played. */
 export const LEVELS = [
@@ -77,7 +77,6 @@ function Referrals() {
   if (!ref) return null;
 
   const link = `${window.location.origin}/?ref=${ref.code}`;
-  const pct = Math.min(100, Math.round((ref.count / ref.goal) * 100));
 
   const copy = async () => {
     try {
@@ -93,8 +92,7 @@ function Referrals() {
     <div className="panel">
       <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
         Invite friends. Every friend who signs up with your link earns you{' '}
-        <b className="gold">{money(ref.perFriendPoints)}</b> points. Reach {ref.goal} friends for a{' '}
-        <b className="gold">{cash(ref.goalBonusCents)}</b> real bonus.
+        <b className="gold">{cash(ref.demoPerFriendCents)}</b> demo balance.
       </p>
 
       <div className="field">
@@ -108,14 +106,8 @@ function Referrals() {
       </div>
 
       <div className="wallet-goal-line">
-        <span>
-          {ref.count} of {ref.goal} friends
-          {ref.bonusAwarded ? ' · bonus earned 🎉' : ''}
-        </span>
-        <b>{ref.count * ref.perFriendPoints} pts earned</b>
-      </div>
-      <div className="wallet-progress">
-        <div className="wallet-progress-bar" style={{ width: `${pct}%` }} />
+        <span>{ref.count} friend{ref.count === 1 ? '' : 's'} invited</span>
+        <b>{cash(ref.totalDemoEarnedCents)} demo earned</b>
       </div>
     </div>
   );

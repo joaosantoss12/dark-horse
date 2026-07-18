@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
+import { DailyReward } from './components/DailyReward';
 import { RulesGate } from './components/RulesGate';
 import { SUPPORT_URL, SupportLink, TelegramIcon } from './components/Support';
 import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
 import { cash, money } from './lib/money';
 import { startNotifier } from './lib/notify';
+import { startPresence } from './lib/presence';
 import { AuthProvider, useAuth } from './lib/useAuth';
 import { AdminPage } from './pages/AdminPage';
 import { AuthPage } from './pages/AuthPage';
@@ -25,6 +27,11 @@ function Shell() {
   useEffect(() => {
     if (!profile?.id) return;
     return startNotifier(profile.id);
+  }, [profile?.id]);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    return startPresence(profile.id);
   }, [profile?.id]);
 
   // Navigating is the whole point of the menu, so it must close when you do.
@@ -216,6 +223,8 @@ function Shell() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+
+      <DailyReward />
     </>
   );
 }

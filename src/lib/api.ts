@@ -78,8 +78,6 @@ export interface Profile {
   cash_balance: number;
   /** Demo balance, in cents. Play the money-style tables risk-free. */
   demo_balance: number;
-  /** True once the demo->real bonus has been awarded. */
-  demo_bonus_awarded: boolean;
   /** True once real winnings have reached the withdrawal threshold. */
   withdraw_unlocked: boolean;
   is_admin: boolean;
@@ -209,7 +207,7 @@ export const api = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, balance, cash_balance, demo_balance, demo_bonus_awarded, withdraw_unlocked, is_admin, is_banned, rules_accepted_at')
+      .select('id, display_name, avatar_url, balance, cash_balance, demo_balance, withdraw_unlocked, is_admin, is_banned, rules_accepted_at')
       .eq('id', userId)
       .single();
 
@@ -245,10 +243,20 @@ export const api = {
   },
 
   async referrals(): Promise<{
-    code: string; count: number; goal: number;
-    perFriendPoints: number; goalBonusCents: number; bonusAwarded: boolean;
+    code: string; count: number;
+    demoPerFriendCents: number; totalDemoEarnedCents: number;
   }> {
     return unwrap(await supabase.rpc('dh_my_referrals'));
+  },
+
+  /** Once per UTC calendar day; a repeat call just reports claimed: false. */
+  async claimDaily(): Promise<{ claimed: boolean; amount: number; balance?: number }> {
+    return unwrap(await supabase.rpc('dh_claim_daily'));
+  },
+
+  /** Ties this browser's device token to the signed-in account. */
+  async registerDevice(token: string) {
+    return unwrap(await supabase.rpc('dh_register_device', { p_token: token }));
   },
 
   async updateProfile(displayName: string, avatarUrl: string | null) {
@@ -319,6 +327,9 @@ export const api = {
   admin: {
     async stats() {
       return unwrap(await supabase.rpc('dh_admin_stats'));
+    },
+    async bank() {
+      return unwrap(await supabase.rpc('dh_admin_bank'));
     },
     async players(query = '') {
       return unwrap(await supabase.rpc('dh_admin_players', { p_query: query })) ?? [];

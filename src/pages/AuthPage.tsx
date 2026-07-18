@@ -4,7 +4,26 @@ import { HowToPlay } from '../components/HowToPlay';
 import { SupportLink } from '../components/Support';
 import { Modal } from '../components/Modal';
 import { HorseMark } from '../components/icons';
+import { api } from '../lib/api';
 import { setRemember, supabase } from '../lib/supabase';
+
+// One token per browser, so a repeat signup from the same device can be
+// caught. Trivially cleared by the user -- accepted, this is a deterrent, not
+// a hard block.
+const DEVICE_KEY = 'dh.device';
+
+function deviceToken(): string {
+  try {
+    let token = localStorage.getItem(DEVICE_KEY);
+    if (!token) {
+      token = crypto.randomUUID();
+      localStorage.setItem(DEVICE_KEY, token);
+    }
+    return token;
+  } catch {
+    return '';
+  }
+}
 
 export function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -50,6 +69,16 @@ export function AuthPage() {
         // profile and welcome points are created by a database trigger either way.
         if (!data.session) {
           setNotice('Check your inbox to confirm your email, then sign in.');
+        } else {
+          // Session exists now, so the device check can run in this same flow.
+          // A device that has already registered an account is turned away
+          // immediately rather than being let in with a working session.
+          try {
+            await api.registerDevice(deviceToken());
+          } catch (deviceErr) {
+            await supabase.auth.signOut();
+            throw deviceErr;
+          }
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });

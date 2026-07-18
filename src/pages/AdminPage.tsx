@@ -5,6 +5,7 @@ import { Modal } from '../components/Modal';
 import { api, type Mode } from '../lib/api';
 import { cash, money } from '../lib/money';
 import { useAuth } from '../lib/useAuth';
+import { watchOnlineCount } from '../lib/presence';
 
 interface RoomRow {
   id: number;
@@ -361,7 +362,7 @@ function Players() {
 
       <input
         className="input"
-        placeholder="Search by name or email"
+        placeholder="Search by name, email, or paste a user ID"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
@@ -618,6 +619,76 @@ interface PaymentRow {
  * withdraw and was sent to Telegram. Settle the crypto there, credit or debit
  * their cash on the Players tab, then mark it done here.
  */
+/** Credit or debit a real-money balance by pasting the user's id directly. */
+function CreditById({ onDone }: { onDone: () => void }) {
+  const [userId, setUserId] = useState('');
+  const [amount, setAmount] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const apply = async () => {
+    setError(null);
+    setNotice(null);
+    const cents = Math.round(Number(amount) * 100);
+    if (!userId.trim()) {
+      setError('Paste the player\'s user id.');
+      return;
+    }
+    if (!Number.isFinite(cents) || cents === 0) {
+      setError('Enter a non-zero dollar amount.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const balance = await api.admin.adjustCash(userId.trim(), cents, 'Deposit credited by admin');
+      setNotice(`Done. Their real-money balance is now ${cash(balance)}.`);
+      setAmount('');
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not credit that account.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="panel" style={{ marginBottom: 14 }}>
+      <div className="section-title" style={{ marginTop: 0 }}>Credit a deposit by user ID</div>
+      <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
+        Once the crypto has settled on Telegram, paste the player's user id here and enter the
+        dollar amount to credit their real-money balance directly.
+      </p>
+      {error && <div className="error">{error}</div>}
+      {notice && <div className="notice">{notice}</div>}
+      <div className="grid-2">
+        <div className="field">
+          <label>User ID</label>
+          <input
+            className="input"
+            placeholder="e.g. 3f2a1c9e-…"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          />
+        </div>
+        <div className="field">
+          <label>Amount ($)</label>
+          <input
+            className="input"
+            type="number"
+            placeholder="e.g. 20 or 12.50"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </div>
+      </div>
+      <button className="btn" disabled={busy} onClick={() => void apply()}>
+        Credit account
+      </button>
+    </div>
+  );
+}
+
 function Payments() {
   const [rows, setRows] = useState<PaymentRow[]>([]);
   const [includeDone, setIncludeDone] = useState(false);
@@ -644,11 +715,13 @@ function Payments() {
 
   return (
     <>
+      <CreditById onDone={load} />
+
       {error && <div className="error">{error}</div>}
 
       <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
         Nothing here moves money. A player tapped deposit or withdraw and was sent to
-        <b> @DH_Support</b>. Settle the crypto there, adjust their real-money balance on the
+        <b> @DH_Support</b>. Settle the crypto there, credit their account above or on the
         Players tab, then mark it done.
       </p>
 
@@ -702,16 +775,85 @@ function Payments() {
   );
 }
 
+/** Platform profit: rake kept from real-money hands, plus the surrounding cash flow. */
+function Bank() {
+  const [bank, setBank] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.admin.bank().then(setBank).catch((err) => setError(err.message));
+  }, []);
+
+  if (error) return <div className="error">{error}</div>;
+  if (!bank) return <div className="muted">Loading…</div>;
+
+  const net = bank.rakeCents - bank.bonusesCents;
+
+  return (
+    <>
+      <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
+        Rake is what the platform actually earns from real-money hands. Deposits, withdrawals and
+        demo→real bonuses are shown for context, not counted as profit on their own.
+      </p>
+
+      <div className="panel grid-2 stats" style={{ marginBottom: 14 }}>
+        <div className="stat">
+          <b className="gold">{cash(bank.rakeCents)}</b>
+          <span>Rake collected (real-money tables)</span>
+        </div>
+        <div className={`stat ${net < 0 ? 'down' : ''}`}>
+          <b className={net >= 0 ? 'gold' : ''}>{cash(net)}</b>
+          <span>Rake minus demo→real bonuses granted</span>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="row">
+          <div className="row-main">
+            <div className="row-title">Owed to players</div>
+            <div className="row-sub">Sum of every real-money balance right now</div>
+          </div>
+          <div className="amount">{cash(bank.liabilityCents)}</div>
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-title">Deposits credited</div>
+            <div className="row-sub">Admin-confirmed crypto deposits</div>
+          </div>
+          <div className="amount up">{cash(bank.depositsCents)}</div>
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-title">Withdrawals paid out</div>
+            <div className="row-sub">Real money sent back to players</div>
+          </div>
+          <div className="amount">{cash(bank.withdrawalsCents)}</div>
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-title">Demo→real bonuses granted</div>
+            <div className="row-sub">Demo balances that hit $100 and converted</div>
+          </div>
+          <div className="amount">{cash(bank.bonusesCents)}</div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function AdminPage() {
   const { profile } = useAuth();
-  const [tab, setTab] = useState<'tables' | 'players' | 'payments' | 'pace'>('tables');
+  const [tab, setTab] = useState<'tables' | 'players' | 'payments' | 'pace' | 'bank'>('tables');
   const [stats, setStats] = useState<any>(null);
   const [openPayments, setOpenPayments] = useState(0);
+  const [online, setOnline] = useState(0);
 
   useEffect(() => {
     void api.admin.stats().then(setStats).catch(() => { });
     void api.admin.openPaymentCount().then(setOpenPayments).catch(() => { });
   }, [tab]);
+
+  useEffect(() => watchOnlineCount(setOnline), []);
 
   if (!profile?.is_admin) {
     return <div className="empty">This page is for admins.</div>;
@@ -726,16 +868,32 @@ export function AdminPage() {
           <span>Players</span>
         </div>
         <div className="stat">
+          <b>{online}</b>
+          <span>Online now</span>
+        </div>
+        <div className="stat">
+          <b>{stats?.activeTables ?? '—'}</b>
+          <span>Active tables</span>
+        </div>
+        <div className="stat">
           <b>{stats?.rounds ?? '—'}</b>
           <span>Rounds</span>
         </div>
         <div className="stat">
-          <b>{stats?.wagered ?? '—'}</b>
-          <span>Wagered</span>
+          <b>{stats?.pointsInPlay ?? '—'}</b>
+          <span>Points in play</span>
+        </div>
+        <div className="stat">
+          <b>{stats ? cash(stats.demoInPlay) : '—'}</b>
+          <span>Demo in play</span>
+        </div>
+        <div className="stat">
+          <b>{stats ? cash(stats.cashInPlay) : '—'}</b>
+          <span>Real $ owed to players</span>
         </div>
         <div className="stat">
           <b>{stats ? stats.wagered - stats.paidOut : '—'}</b>
-          <span>House</span>
+          <span>House (all modes)</span>
         </div>
       </div>
 
@@ -753,12 +911,16 @@ export function AdminPage() {
         <button className={`chip ${tab === 'pace' ? 'on' : ''}`} onClick={() => setTab('pace')}>
           Pace
         </button>
+        <button className={`chip ${tab === 'bank' ? 'on' : ''}`} onClick={() => setTab('bank')}>
+          Bank
+        </button>
       </div>
 
       {tab === 'tables' && <Tables />}
       {tab === 'players' && <Players />}
       {tab === 'payments' && <Payments />}
       {tab === 'pace' && <Pace />}
+      {tab === 'bank' && <Bank />}
     </>
   );
 }
