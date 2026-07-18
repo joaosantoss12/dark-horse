@@ -48,16 +48,6 @@ function show(title: string, body: string, tag: string) {
   };
 }
 
-/**
- * Fires a sample notification so a player can confirm their browser and OS
- * actually show them. The real alert only fires for OTHER players when someone
- * joins -- you are never notified about your own join -- so this is the only way
- * to test it without a second account.
- */
-export function testNotification() {
-  show('🔔 Alerts are working', 'This is what a table alert looks like.', 'dh-test');
-}
-
 /** How many humans are sitting at each table, as we last saw it. */
 const lastSeen = new Map<number, number>();
 
@@ -86,13 +76,12 @@ function announce(rooms: Room[], youId: string) {
     // You are already at this table -- you know.
     if (room.players.some((p) => p.userId === youId)) continue;
 
-    const free = room.seats - room.players.length;
     const newest = room.players.filter((p) => !p.isBot).slice(-1)[0];
-    const who = newest?.name ?? 'A player';
+    const who = newest?.name ?? 'Someone';
 
     show(
-      free === 1 ? '🔥 One seat left!' : '🔔 A table is filling',
-      `${who} joined ${room.name} — ${room.players.length}/${room.seats} seated. Join now!`,
+      `🔔 ${room.name}`,
+      `${who} joined the table (${room.players.length}/${room.seats})`,
       `room-${room.id}`,
     );
   }

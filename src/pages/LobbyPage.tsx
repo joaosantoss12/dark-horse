@@ -5,13 +5,7 @@ import { FloatingChat } from '../components/FloatingChat';
 import { HowToPlay } from '../components/HowToPlay';
 import { api, type Limits, type Mode, type Room } from '../lib/api';
 import { stake } from '../lib/money';
-import {
-  notificationsOn,
-  notificationsSupported,
-  requestNotifications,
-  setNotifications,
-  testNotification,
-} from '../lib/notify';
+import { notificationsOn, notificationsSupported, requestNotifications, setNotifications } from '../lib/notify';
 import { useAuth } from '../lib/useAuth';
 import { useTables } from '../lib/useRoom';
 
@@ -166,20 +160,9 @@ function NotifyToggle() {
   };
 
   return (
-    <div className="notify-controls">
-      <button className={`notify-toggle ${on ? 'on' : ''}`} onClick={() => void toggle()}>
-        {on ? '🔔 Alerts on' : '🔕 Alert me when a player joins a table'}
-      </button>
-      {on && (
-        <button
-          className="notify-toggle"
-          onClick={testNotification}
-          title="Fire a sample notification to check it shows on your device"
-        >
-          Test
-        </button>
-      )}
-    </div>
+    <button className={`notify-toggle ${on ? 'on' : ''}`} onClick={() => void toggle()}>
+      {on ? '🔔 Alerts on' : '🔕 Alert me when a player joins a table'}
+    </button>
   );
 }
 
@@ -220,7 +203,7 @@ export function LobbyPage() {
         <HowToPlay />
       </div>
 
-      <FloatingChat roomId={null} title="🌍 Lobby chat" />
+      <FloatingChat roomId={null} title="🌍 Main chat" />
     </>
   );
 }

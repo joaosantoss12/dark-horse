@@ -1142,12 +1142,6 @@ img.avatar { object-fit: cover; }
 }
 .wallet-card.cash .wallet-progress-bar { background: linear-gradient(90deg, #4aa0ff, #a9c8ff); }
 
-@media (max-width: 640px) {
-  /* Three balance chips is a lot on a phone; drop the demo one from the bar
-     (still visible on the wallet and in the drawer). */
-  .balance.demo { display: none; }
-}
-
 /* ---------- levels ---------- */
 .level-card { margin-bottom: 12px; }
 .level-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
@@ -1228,9 +1222,19 @@ img.avatar { object-fit: cover; }
 .chat-name { font-weight: 700; color: var(--gold-soft); margin-right: 6px; }
 .chat-msg.mine .chat-name { color: #a9c8ff; }
 .chat-body { color: var(--text); word-break: break-word; }
+.chat-quick-row {
+  display: flex; align-items: center; gap: 2px;
+  border-top: 1px solid var(--line);
+}
+.chat-quick-arrow {
+  flex: none; width: 26px; align-self: stretch;
+  border: none; background: transparent; color: var(--muted);
+  font-size: 16px; line-height: 1; cursor: pointer;
+}
+.chat-quick-arrow:hover { color: var(--gold-soft); }
 .chat-quick {
-  display: flex; gap: 6px; overflow-x: auto; padding: 8px 14px;
-  border-top: 1px solid var(--line); scrollbar-width: none;
+  display: flex; gap: 6px; overflow-x: auto; padding: 8px 4px;
+  scrollbar-width: none; scroll-behavior: smooth;
 }
 .chat-quick::-webkit-scrollbar { display: none; }
 .chat-chip {

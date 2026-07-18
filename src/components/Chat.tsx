@@ -36,6 +36,11 @@ export function Chat({
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const quickRef = useRef<HTMLDivElement>(null);
+
+  const scrollQuick = (dir: -1 | 1) => {
+    quickRef.current?.scrollBy({ left: dir * 120, behavior: 'smooth' });
+  };
 
   // Load history and subscribe. Re-runs if the room changes.
   useEffect(() => {
@@ -104,12 +109,30 @@ export function Chat({
         ))}
       </div>
 
-      <div className="chat-quick">
-        {QUICK.map((q) => (
-          <button key={q} className="chat-chip" disabled={sending} onClick={() => void send(q)}>
-            {q}
-          </button>
-        ))}
+      <div className="chat-quick-row">
+        <button
+          className="chat-quick-arrow"
+          type="button"
+          aria-label="Scroll suggestions left"
+          onClick={() => scrollQuick(-1)}
+        >
+          ‹
+        </button>
+        <div className="chat-quick" ref={quickRef}>
+          {QUICK.map((q) => (
+            <button key={q} className="chat-chip" disabled={sending} onClick={() => void send(q)}>
+              {q}
+            </button>
+          ))}
+        </div>
+        <button
+          className="chat-quick-arrow"
+          type="button"
+          aria-label="Scroll suggestions right"
+          onClick={() => scrollQuick(1)}
+        >
+          ›
+        </button>
       </div>
 
       {error && <div className="chat-error">{error}</div>}

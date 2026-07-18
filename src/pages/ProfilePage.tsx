@@ -70,21 +70,6 @@ export function ProfilePage() {
     }
   };
 
-  const save = async () => {
-    setBusy(true);
-    setError(null);
-    setSaved(false);
-    try {
-      await api.updateProfile(name.trim(), avatarUrl);
-      await refresh();
-      setSaved(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save your profile.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const removeImage = async () => {
     setAvatarUrl(null);
     setBusy(true);
@@ -212,23 +197,6 @@ export function ProfilePage() {
 
       <div className="col">
       <Progression gamesPlayed={played} />
-
-      <div className="section-title">Display name</div>
-      <div className="panel">
-        <div className="field">
-          <label htmlFor="display-name">How you appear at the table</label>
-          <input
-            id="display-name"
-            className="input"
-            value={name}
-            maxLength={24}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <button className="btn" disabled={busy || name.trim() === profile.display_name} onClick={save}>
-          {busy ? 'Saving…' : 'Save'}
-        </button>
-      </div>
       </div>
       </div>
 
