@@ -1092,3 +1092,58 @@ img.avatar { object-fit: cover; }
 .table-card.cash .table-meta b { color: #a9c8ff; }
 
 .pay-method-icon.bank { background: #2d6a4f; color: #d8f3e6; font-size: 16px; }
+
+/* ---------- demo balance chip ---------- */
+.balance.demo {
+  background: linear-gradient(180deg, #3a2d52, #1e1830);
+  border-color: #574080;
+}
+.balance.demo .balance-value { color: #d3c4ff; }
+
+/* ---------- wallet cards (3 balances + funnel) ---------- */
+.wallet-card {
+  border-radius: var(--radius); border: 1px solid var(--line);
+  padding: 16px; margin-bottom: 12px;
+}
+.wallet-card.cash  { background: linear-gradient(150deg, #21365a, #131c2c); border-color: #37527d; }
+.wallet-card.demo  { background: linear-gradient(150deg, #322650, #1a1430); border-color: #574080; }
+.wallet-card.points{ background: linear-gradient(150deg, #2a2013, #1a1410); border-color: #5a4526; }
+.wallet-card-head { display: flex; align-items: flex-start; gap: 12px; }
+.wallet-card-head > div:first-child { flex: 1; }
+.wallet-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted); font-weight: 700;
+}
+.wallet-amount { font-size: 26px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.wallet-amount.cash { color: #cfe0ff; }
+.wallet-amount.demo { color: #d3c4ff; }
+.wallet-amount.points { color: var(--gold-soft); }
+.wallet-actions { display: flex; gap: 8px; flex: none; }
+.wallet-sub { font-size: 12px; color: var(--muted); text-align: right; max-width: 160px; }
+
+.wallet-goal { margin-top: 14px; }
+.wallet-goal.done {
+  font-size: 13px; color: var(--win); font-weight: 600;
+  background: rgba(74, 222, 128, 0.1); border-radius: 8px; padding: 8px 10px;
+}
+.wallet-goal-line {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 12px; color: var(--muted); margin-bottom: 6px;
+}
+.wallet-goal-line b { color: var(--text); font-variant-numeric: tabular-nums; }
+.wallet-progress {
+  height: 7px; border-radius: 4px; overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+.wallet-progress-bar {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+  transition: width 0.4s ease;
+}
+.wallet-card.cash .wallet-progress-bar { background: linear-gradient(90deg, #4aa0ff, #a9c8ff); }
+
+@media (max-width: 640px) {
+  /* Three balance chips is a lot on a phone; drop the demo one from the bar
+     (still visible on the wallet and in the drawer). */
+  .balance.demo { display: none; }
+}

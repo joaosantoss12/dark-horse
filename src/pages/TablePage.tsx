@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { PokerTable } from '../components/PokerTable';
 import { api, type Room } from '../lib/api';
-import { money, moneyGain } from '../lib/money';
+import { moneyGain, stake } from '../lib/money';
 import { useAuth } from '../lib/useAuth';
 import { useTables } from '../lib/useRoom';
 
@@ -86,9 +86,11 @@ function Dealer({ room, seated, youId }: { room: Room; seated: boolean; youId: s
                 </span>
                 <span className="pt-winner-total">{player.totalValue}</span>
                 <span className={`pt-winner-won ${player.isBot ? 'house' : ''}`}>
-                  {/* A bot in a prize place wins nothing -- the money stays with
-                      the house. Saying so is better than showing a blank. */}
-                  {player.isBot && inTheMoney ? 'house' : moneyGain(player.won)}
+                  {player.isBot && inTheMoney
+                    ? 'house'
+                    : (player.won ?? 0) > 0
+                      ? `+${stake(room.mode, player.won ?? 0)}`
+                      : '—'}
                 </span>
               </div>
             );
@@ -177,7 +179,7 @@ export function TablePage() {
       <div className="actions sticky-actions">
         {waiting && !seated && !full && (
           <button className="btn btn-block" disabled={busy} onClick={() => act(() => api.join(room.id))}>
-            Take a seat · {money(room.buyIn)}
+            Take a seat · {stake(room.mode, room.buyIn)}
           </button>
         )}
 
@@ -221,12 +223,12 @@ export function TablePage() {
             <span className="prize-place">
               {MEDALS[i]} {ORDINALS[i]}
             </span>
-            <b>{moneyGain(prize)}</b>
+            <b>+{stake(room.mode, prize)}</b>
           </div>
         ))}
         <div className="prize muted">
           <span className="prize-place">Buy-in</span>
-          <b>{money(room.buyIn)}</b>
+          <b>{stake(room.mode, room.buyIn)}</b>
         </div>
       </div>
 

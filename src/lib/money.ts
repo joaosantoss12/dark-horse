@@ -34,3 +34,11 @@ export function cash(cents: number | null | undefined): string {
     maximumFractionDigits: 2,
   })}`;
 }
+
+/**
+ * A table's buy-in or prize. Free-play tables are counted in points; demo and
+ * real-money tables in cents. The unit follows the table's mode.
+ */
+export function stake(mode: 'free' | 'demo' | 'cash', amount: number): string {
+  return mode === 'free' ? `${amount.toLocaleString()} pts` : cash(amount);
+}

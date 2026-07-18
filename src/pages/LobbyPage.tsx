@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { HowToPlay } from '../components/HowToPlay';
 import { api, type Limits, type Mode, type Room } from '../lib/api';
-import { money } from '../lib/money';
+import { stake } from '../lib/money';
 import { notificationsOn, notificationsSupported, requestNotifications, setNotifications } from '../lib/notify';
 import { useAuth } from '../lib/useAuth';
 import { useTables } from '../lib/useRoom';
@@ -15,6 +15,12 @@ function badge(room: Room, seated: boolean) {
   return { text: 'Open', className: 'pill' };
 }
 
+const MODE_CHIP: Record<Mode, string> = {
+  free: '🎮 Free play',
+  demo: '🎬 Demo',
+  cash: '💵 Real money',
+};
+
 function TableCard({ room, youId, locked }: { room: Room; youId: string; locked: boolean }) {
   const seated = room.players.some((p) => p.userId === youId);
   const tag = badge(room, seated);
@@ -22,7 +28,7 @@ function TableCard({ room, youId, locked }: { room: Room; youId: string; locked:
   const card = (
     <>
       <div className="table-card-top">
-        <span className="mode-chip">{room.mode === 'cash' ? '💵 Real money' : '🎮 Free play'}</span>
+        <span className="mode-chip">{MODE_CHIP[room.mode]}</span>
         <span className={tag.className}>{tag.text}</span>
       </div>
 
@@ -31,11 +37,11 @@ function TableCard({ room, youId, locked }: { room: Room; youId: string; locked:
       <div className="table-meta">
         <div>
           <span>Buy-in</span>
-          <b>{money(room.buyIn)}</b>
+          <b>{stake(room.mode, room.buyIn)}</b>
         </div>
         <div>
           <span>Top prize</span>
-          <b>{money(room.prizes[0])}</b>
+          <b>{stake(room.mode, room.prizes[0])}</b>
         </div>
         <div>
           <span>Pays</span>
@@ -95,20 +101,21 @@ function Section({
   const cashLocked = mode === 'cash' && !limits?.cashEnabled;
   const outOfHands = mode === 'free' && limits != null && limits.freeHandsLeft <= 0;
 
+  const META: Record<Mode, { icon: string; name: string; sub: string }> = {
+    free: { icon: '🎮', name: 'Free Play', sub: 'Play for points. No cash value.' },
+    demo: { icon: '🎬', name: 'Demo', sub: 'Play the money tables risk-free — grow it into a real bonus.' },
+    cash: { icon: '💵', name: 'Real Money', sub: 'Play with your real-money balance.' },
+  };
+  const meta = META[mode];
+
   return (
     <section className={`mode-section ${mode}`}>
       <div className="mode-head">
         <div className="mode-title">
-          <span className="mode-title-icon">{mode === 'free' ? '🎮' : '💵'}</span>
+          <span className="mode-title-icon">{meta.icon}</span>
           <div>
-            <div className="mode-title-name">
-              {mode === 'free' ? 'Free Play' : 'Real Money'}
-            </div>
-            <div className="mode-title-sub">
-              {mode === 'free'
-                ? 'Play for points. No cash value.'
-                : 'Play with your real-money balance.'}
-            </div>
+            <div className="mode-title-name">{meta.name}</div>
+            <div className="mode-title-sub">{meta.sub}</div>
           </div>
         </div>
 
@@ -172,8 +179,9 @@ export function LobbyPage() {
   if (error) return <div className="error">{error}</div>;
   if (!rooms || !profile) return <div className="empty">Loading tables…</div>;
 
-  const free = rooms.filter((r) => r.mode !== 'cash');
-  const cash = rooms.filter((r) => r.mode === 'cash');
+  const freeRooms = rooms.filter((r) => r.mode === 'free');
+  const demoRooms = rooms.filter((r) => r.mode === 'demo');
+  const cashRooms = rooms.filter((r) => r.mode === 'cash');
 
   return (
     <>
@@ -181,8 +189,9 @@ export function LobbyPage() {
         <NotifyToggle />
       </div>
 
-      <Section mode="free" rooms={free} youId={profile.id} limits={limits} />
-      <Section mode="cash" rooms={cash} youId={profile.id} limits={limits} />
+      <Section mode="free" rooms={freeRooms} youId={profile.id} limits={limits} />
+      <Section mode="demo" rooms={demoRooms} youId={profile.id} limits={limits} />
+      <Section mode="cash" rooms={cashRooms} youId={profile.id} limits={limits} />
 
       {rooms.length === 0 && <div className="empty">No tables are open right now.</div>}
 

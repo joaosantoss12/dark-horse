@@ -39,7 +39,7 @@ export interface TablePlayer {
   isSplit: boolean | null;
 }
 
-export type Mode = 'free' | 'cash';
+export type Mode = 'free' | 'demo' | 'cash';
 
 export interface Room {
   id: number;
@@ -76,6 +76,12 @@ export interface Profile {
   balance: number;
   /** Real-money balance, in cents. Divide by 100 to show dollars. */
   cash_balance: number;
+  /** Demo balance, in cents. Play the money-style tables risk-free. */
+  demo_balance: number;
+  /** True once the demo->real bonus has been awarded. */
+  demo_bonus_awarded: boolean;
+  /** True once real winnings have reached the withdrawal threshold. */
+  withdraw_unlocked: boolean;
   is_admin: boolean;
   is_banned: boolean;
   /** Null until the player has seen and accepted the rules. */
@@ -203,7 +209,7 @@ export const api = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, balance, cash_balance, is_admin, is_banned, rules_accepted_at')
+      .select('id, display_name, avatar_url, balance, cash_balance, demo_balance, demo_bonus_awarded, withdraw_unlocked, is_admin, is_banned, rules_accepted_at')
       .eq('id', userId)
       .single();
 
