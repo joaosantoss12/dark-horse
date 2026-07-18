@@ -1339,7 +1339,7 @@ img.avatar { object-fit: cover; }
 .fchat-body .chat-list { flex: 1; max-height: none; }
 
 @media (max-width: 480px) {
-  .fchat { left: 8px; right: 8px; width: auto; }
+  .fchat { right: 8px; left: auto; width: min(58vw, 260px); }
 }
 
 /* ---------- generic two-column layout (history, profile) ---------- */
