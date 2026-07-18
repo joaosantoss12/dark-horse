@@ -48,6 +48,16 @@ function show(title: string, body: string, tag: string) {
   };
 }
 
+/**
+ * Fires a sample notification so a player can confirm their browser and OS
+ * actually show them. The real alert only fires for OTHER players when someone
+ * joins -- you are never notified about your own join -- so this is the only way
+ * to test it without a second account.
+ */
+export function testNotification() {
+  show('🔔 Alerts are working', 'This is what a table alert looks like.', 'dh-test');
+}
+
 /** How many humans are sitting at each table, as we last saw it. */
 const lastSeen = new Map<number, number>();
 
