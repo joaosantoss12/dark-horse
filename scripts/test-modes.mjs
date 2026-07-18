@@ -52,23 +52,26 @@ console.log('\nThe rules must be accepted before playing');
   check('accepting is recorded on the profile', after.rules_accepted_at !== null);
 }
 
-console.log('\nReal money is closed');
+console.log('\nReal money is open (the operator is licensed)');
 {
   const room = (await db.query(
     `INSERT INTO rooms (name, seats, buy_in, prizes, mode, sort_order)
-     VALUES ('CASHTEST', 4, 10, ARRAY[24,12]::bigint[], 'cash', 97) RETURNING id`,
+     VALUES ('CASHTEST', 4, 1000, ARRAY[2400,1200]::bigint[], 'cash', 97) RETURNING id`,
   )).rows[0];
 
-  const { error } = await sb.rpc('dh_join_room', { p_room_id: room.id });
-  check('a player cannot sit at a real-money table', !!error, 'the join succeeded!');
-  check('and is told why', (error?.message ?? '').includes('not open yet'), error?.message ?? '');
-
-  const seated = (await db.query('SELECT COUNT(*)::int n FROM seats WHERE room_id = $1', [room.id])).rows[0];
-  check('no seat was taken', seated.n === 0);
-
   const { data: limits } = await sb.rpc('dh_my_limits');
-  check('the client is told cash is disabled', limits.cashEnabled === false);
+  check('the client is told cash is enabled', limits.cashEnabled === true);
 
+  // No real balance -> stopped for funds, not because it is locked.
+  const { error } = await sb.rpc('dh_join_room', { p_room_id: room.id });
+  check('an unfunded player is stopped for lack of funds',
+    (error?.message ?? '').toLowerCase().includes('real-money balance'), error?.message ?? '');
+
+  await db.query('UPDATE profiles SET cash_balance = 5000 WHERE id = $1', [uid]);
+  const { error: ok } = await sb.rpc('dh_join_room', { p_room_id: room.id });
+  check('a funded player can join a real-money table', !ok, ok?.message ?? '');
+
+  await sb.rpc('dh_leave_room', { p_room_id: room.id });
   await db.query('DELETE FROM rooms WHERE id = $1', [room.id]);
 }
 

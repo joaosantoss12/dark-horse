@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Chat } from '../components/Chat';
 import { HowToPlay } from '../components/HowToPlay';
 import { api, type Limits, type Mode, type Room } from '../lib/api';
 import { stake } from '../lib/money';
@@ -194,6 +195,9 @@ export function LobbyPage() {
       <Section mode="cash" rooms={cashRooms} youId={profile.id} limits={limits} />
 
       {rooms.length === 0 && <div className="empty">No tables are open right now.</div>}
+
+      <div className="section-title">Lobby chat</div>
+      <Chat roomId={null} title="🌍 Everyone" />
 
       <div className="section-title">How it works</div>
       <div className="panel">

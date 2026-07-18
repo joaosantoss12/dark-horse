@@ -234,6 +234,16 @@ export const api = {
     return unwrap(await supabase.rpc('dh_request_payment', { p_kind: kind }));
   },
 
+  async chatHistory(roomId: number | null): Promise<
+    { id: number; user_id: string; name: string; body: string; created_at: string }[]
+  > {
+    return unwrap(await supabase.rpc('dh_chat_history', { p_room_id: roomId })) ?? [];
+  },
+
+  async sendChat(roomId: number | null, body: string) {
+    return unwrap(await supabase.rpc('dh_send_chat', { p_room_id: roomId, p_body: body }));
+  },
+
   async referrals(): Promise<{
     code: string; count: number; goal: number;
     perFriendPoints: number; goalBonusCents: number; bonusAwarded: boolean;

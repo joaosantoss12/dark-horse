@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { Chat } from '../components/Chat';
 import { PokerTable } from '../components/PokerTable';
 import { api, type Room } from '../lib/api';
 import { moneyGain, stake } from '../lib/money';
@@ -235,6 +236,9 @@ export function TablePage() {
       <PokerTable room={room} youId={profile.id}>
         <Dealer room={room} seated={seated} youId={profile.id} />
       </PokerTable>
+
+      <div className="section-title">Table chat</div>
+      <Chat roomId={room.id} title={`🃏 ${room.name}`} />
 
       {room.phase === 'results' && (
         <>
