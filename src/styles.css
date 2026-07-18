@@ -1243,3 +1243,71 @@ img.avatar { object-fit: cover; }
 .chat-error { padding: 0 14px 8px; color: var(--lose); font-size: 12px; }
 .chat-input { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .chat-input .input { flex: 1; }
+
+/* ---------- 3-column lobby (one per mode) ---------- */
+.lobby-modes {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  align-items: start;
+}
+.lobby-modes .mode-section { margin-bottom: 0; }
+/* Inside a narrow column the table cards stack. */
+.lobby-modes .table-grid { grid-template-columns: 1fr; }
+.lobby-modes .mode-title-sub { display: none; }   /* too tight in a column */
+
+@media (max-width: 900px) {
+  .lobby-modes { grid-template-columns: 1fr; }
+  .lobby-modes .mode-title-sub { display: block; }
+  .lobby-modes .table-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+}
+
+/* ---------- floating chat ---------- */
+.fchat-launcher {
+  position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 11px 16px; border-radius: 999px;
+  background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color: #2a1d08;
+  font-weight: 800; font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.fchat-launcher:hover { filter: brightness(1.05); }
+.fchat-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--lose);
+}
+
+.fchat {
+  position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 50; width: 320px;
+  display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: fchat-in 0.16s ease;
+}
+@keyframes fchat-in { from { opacity: 0; transform: translateY(8px); } }
+.fchat-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; cursor: grab; touch-action: none;
+  background: linear-gradient(180deg, #262019, #1a1510);
+  border-bottom: 1px solid var(--line);
+}
+.fchat-head:active { cursor: grabbing; }
+.fchat-title {
+  flex: 1; min-width: 0; font-size: 13px; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fchat-controls { display: flex; gap: 2px; flex: none; }
+.fchat-btn {
+  width: 26px; height: 26px; border-radius: 6px; color: var(--muted);
+  display: grid; place-items: center; font-size: 13px;
+}
+.fchat-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+.fchat.collapsed { width: 260px; }
+/* The chat body can be resized from its corner. */
+.fchat-body { resize: vertical; overflow: hidden; height: 340px; min-height: 180px; max-height: 70vh; }
+.fchat-body .chat { border: 0; border-radius: 0; height: 100%; display: flex; flex-direction: column; }
+.fchat-body .chat-list { flex: 1; max-height: none; }
+
+@media (max-width: 480px) {
+  .fchat { left: 8px; right: 8px; width: auto; }
+}

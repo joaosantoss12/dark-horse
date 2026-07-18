@@ -20,7 +20,16 @@ const QUICK = ['Good luck! 🍀', 'Nice hand! 👏', "I'm coming for the top spo
  * chat. History loads once, then Realtime streams new messages -- there is no
  * polling.
  */
-export function Chat({ roomId, title }: { roomId: number | null; title: string }) {
+export function Chat({
+  roomId,
+  title,
+  showHeader = true,
+}: {
+  roomId: number | null;
+  title: string;
+  /** Off when a floating frame provides its own header. */
+  showHeader?: boolean;
+}) {
   const { profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [body, setBody] = useState('');
@@ -83,7 +92,7 @@ export function Chat({ roomId, title }: { roomId: number | null; title: string }
 
   return (
     <div className="chat">
-      <div className="chat-head">{title}</div>
+      {showHeader && <div className="chat-head">{title}</div>}
 
       <div className="chat-list" ref={listRef}>
         {messages.length === 0 && <div className="chat-empty">No messages yet. Say hello 👋</div>}

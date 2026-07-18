@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Chat } from '../components/Chat';
+import { FloatingChat } from '../components/FloatingChat';
 import { HowToPlay } from '../components/HowToPlay';
 import { api, type Limits, type Mode, type Room } from '../lib/api';
 import { stake } from '../lib/money';
@@ -190,19 +190,20 @@ export function LobbyPage() {
         <NotifyToggle />
       </div>
 
-      <Section mode="free" rooms={freeRooms} youId={profile.id} limits={limits} />
-      <Section mode="demo" rooms={demoRooms} youId={profile.id} limits={limits} />
-      <Section mode="cash" rooms={cashRooms} youId={profile.id} limits={limits} />
+      <div className="lobby-modes">
+        <Section mode="free" rooms={freeRooms} youId={profile.id} limits={limits} />
+        <Section mode="demo" rooms={demoRooms} youId={profile.id} limits={limits} />
+        <Section mode="cash" rooms={cashRooms} youId={profile.id} limits={limits} />
+      </div>
 
       {rooms.length === 0 && <div className="empty">No tables are open right now.</div>}
-
-      <div className="section-title">Lobby chat</div>
-      <Chat roomId={null} title="🌍 Everyone" />
 
       <div className="section-title">How it works</div>
       <div className="panel">
         <HowToPlay />
       </div>
+
+      <FloatingChat roomId={null} title="🌍 Lobby chat" />
     </>
   );
 }
