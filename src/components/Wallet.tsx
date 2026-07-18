@@ -89,15 +89,6 @@ function PaymentModal({ flow, onClose }: { flow: Flow; onClose: () => void }) {
   );
 }
 
-function Progress({ value, goal }: { value: number; goal: number }) {
-  const pct = Math.min(100, Math.round((value / goal) * 100));
-  return (
-    <div className="wallet-progress">
-      <div className="wallet-progress-bar" style={{ width: `${pct}%` }} />
-    </div>
-  );
-}
-
 /** The three balances and the funnel that connects them. */
 export function Wallet() {
   const { profile } = useAuth();
@@ -107,85 +98,64 @@ export function Wallet() {
 
   const canWithdraw = profile.withdraw_unlocked && profile.cash_balance > 0;
 
+  const demoPct = Math.min(100, Math.round((profile.demo_balance / DEMO_GOAL_CENTS) * 100));
+  const cashPct = Math.min(100, Math.round((profile.cash_balance / WITHDRAW_GOAL_CENTS) * 100));
+
   return (
     <>
       <div className="section-title">Wallet</div>
 
-      {/* Real money */}
-      <div className="wallet-card cash">
-        <div className="wallet-card-head">
-          <div>
-            <div className="wallet-label">Real money</div>
-            <div className="wallet-amount cash">{cash(profile.cash_balance)}</div>
-          </div>
-          <div className="wallet-actions">
-            <button className="btn btn-sm" onClick={() => setFlow('deposit')}>
-              Deposit
-            </button>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setFlow('withdraw')}
-              disabled={!canWithdraw}
-              title={
-                !profile.withdraw_unlocked
-                  ? `Grow your real balance to ${cash(WITHDRAW_GOAL_CENTS)} to unlock withdrawals`
-                  : profile.cash_balance <= 0
-                    ? 'Nothing to withdraw yet'
-                    : undefined
-              }
-            >
-              Withdraw
-            </button>
-          </div>
+      <div className="wallet-row">
+        {/* Real money */}
+        <div className="wallet-chip cash">
+          <div className="wallet-chip-label">Real money</div>
+          <div className="wallet-chip-amount">{cash(profile.cash_balance)}</div>
+          {!profile.withdraw_unlocked && (
+            <div className="wallet-chip-bar" title={`${cash(profile.cash_balance)} / ${cash(WITHDRAW_GOAL_CENTS)} to withdraw`}>
+              <span style={{ width: `${cashPct}%` }} />
+            </div>
+          )}
         </div>
 
+        {/* Demo */}
+        <div className="wallet-chip demo">
+          <div className="wallet-chip-label">Demo</div>
+          <div className="wallet-chip-amount">{cash(profile.demo_balance)}</div>
+          {!profile.demo_bonus_awarded && (
+            <div className="wallet-chip-bar" title={`${cash(profile.demo_balance)} / ${cash(DEMO_GOAL_CENTS)} for a real bonus`}>
+              <span style={{ width: `${demoPct}%` }} />
+            </div>
+          )}
+        </div>
+
+        {/* Points */}
+        <div className="wallet-chip points">
+          <div className="wallet-chip-label">Points</div>
+          <div className="wallet-chip-amount">{money(profile.balance)}</div>
+        </div>
+      </div>
+
+      <div className="wallet-buttons">
+        <button className="btn btn-sm" onClick={() => setFlow('deposit')}>
+          Deposit
+        </button>
+        <button
+          className="btn btn-ghost btn-sm"
+          onClick={() => setFlow('withdraw')}
+          disabled={!canWithdraw}
+          title={
+            !profile.withdraw_unlocked
+              ? `Grow real winnings to ${cash(WITHDRAW_GOAL_CENTS)} to unlock withdrawals`
+              : profile.cash_balance <= 0
+                ? 'Nothing to withdraw yet'
+                : undefined
+          }
+        >
+          Withdraw
+        </button>
         {!profile.withdraw_unlocked && (
-          <div className="wallet-goal">
-            <div className="wallet-goal-line">
-              <span>Withdrawals unlock at {cash(WITHDRAW_GOAL_CENTS)}</span>
-              <b>
-                {cash(profile.cash_balance)} / {cash(WITHDRAW_GOAL_CENTS)}
-              </b>
-            </div>
-            <Progress value={profile.cash_balance} goal={WITHDRAW_GOAL_CENTS} />
-          </div>
+          <span className="wallet-hint">Withdrawals unlock at {cash(WITHDRAW_GOAL_CENTS)}</span>
         )}
-      </div>
-
-      {/* Demo — the on-ramp to real money */}
-      <div className="wallet-card demo">
-        <div className="wallet-card-head">
-          <div>
-            <div className="wallet-label">Demo balance</div>
-            <div className="wallet-amount demo">{cash(profile.demo_balance)}</div>
-          </div>
-          <div className="wallet-sub">Play the money tables risk-free.</div>
-        </div>
-
-        {!profile.demo_bonus_awarded ? (
-          <div className="wallet-goal">
-            <div className="wallet-goal-line">
-              <span>Reach {cash(DEMO_GOAL_CENTS)} to earn a real cash bonus</span>
-              <b>
-                {cash(profile.demo_balance)} / {cash(DEMO_GOAL_CENTS)}
-              </b>
-            </div>
-            <Progress value={profile.demo_balance} goal={DEMO_GOAL_CENTS} />
-          </div>
-        ) : (
-          <div className="wallet-goal done">🎉 Bonus earned — it's in your real-money balance.</div>
-        )}
-      </div>
-
-      {/* Free-play points */}
-      <div className="wallet-card points">
-        <div className="wallet-card-head">
-          <div>
-            <div className="wallet-label">Free-play points</div>
-            <div className="wallet-amount points">{money(profile.balance)}</div>
-          </div>
-          <div className="wallet-sub">Play the free table. No cash value.</div>
-        </div>
       </div>
 
       {flow && <PaymentModal flow={flow} onClose={() => setFlow(null)} />}

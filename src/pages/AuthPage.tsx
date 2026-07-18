@@ -31,10 +31,18 @@ export function AuthPage() {
       if (mode === 'signup') {
         if (password.length < 8) throw new Error('Use at least 8 characters for your password.');
 
+        // A referral code arrives as ?ref=CODE and rides along in the signup
+        // metadata; the database trigger rewards the referrer.
+        const ref = new URLSearchParams(window.location.search).get('ref');
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { display_name: name.trim() || email.split('@')[0] } },
+          options: {
+            data: {
+              display_name: name.trim() || email.split('@')[0],
+              ...(ref ? { ref: ref.toUpperCase() } : {}),
+            },
+          },
         });
         if (error) throw error;
 

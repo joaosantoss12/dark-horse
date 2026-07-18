@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PlayingCard } from '../components/PlayingCard';
 import { api, MAX_AVATAR_BYTES, type Stats } from '../lib/api';
 import { money, moneyGain, moneySigned } from '../lib/money';
+import { Progression } from '../components/Progression';
 import { Wallet } from '../components/Wallet';
 import { useAuth } from '../lib/useAuth';
 
@@ -205,6 +206,8 @@ export function ProfilePage() {
           </div>
         )}
       </div>
+
+      <Progression gamesPlayed={played} />
 
       <div className="section-title">Display name</div>
       <div className="panel">

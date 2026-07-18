@@ -234,6 +234,13 @@ export const api = {
     return unwrap(await supabase.rpc('dh_request_payment', { p_kind: kind }));
   },
 
+  async referrals(): Promise<{
+    code: string; count: number; goal: number;
+    perFriendPoints: number; goalBonusCents: number; bonusAwarded: boolean;
+  }> {
+    return unwrap(await supabase.rpc('dh_my_referrals'));
+  },
+
   async updateProfile(displayName: string, avatarUrl: string | null) {
     return unwrap(
       await supabase.rpc('dh_update_profile', {
@@ -318,6 +325,13 @@ export const api = {
     async adjustCash(userId: string, cents: number, note: string) {
       return unwrap<number>(
         await supabase.rpc('dh_admin_adjust_cash', {
+          p_user_id: userId, p_cents: cents, p_note: note,
+        }),
+      );
+    },
+    async adjustDemo(userId: string, cents: number, note: string) {
+      return unwrap<number>(
+        await supabase.rpc('dh_admin_adjust_demo', {
           p_user_id: userId, p_cents: cents, p_note: note,
         }),
       );

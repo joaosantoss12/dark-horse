@@ -80,13 +80,15 @@ function RoomEditor({ initial, onDone }: { initial: RoomForm; onDone: () => void
           value={form.mode}
           onChange={(e) => setForm({ ...form, mode: e.target.value as Mode })}
         >
-          <option value="free">Free — play money, subject to the daily limit</option>
-          <option value="cash">Real money — locked until licensed</option>
+          <option value="free">Free — points, subject to the daily limit</option>
+          <option value="demo">Demo — demo cash, live and risk-free</option>
+          <option value="cash">Real money — locked until enabled</option>
         </select>
-        {form.mode === 'cash' && (
+        {form.mode !== 'free' && (
           <p className="field-note">
-            Real-money tables can be configured but cannot be joined: the database refuses to seat
-            anyone until the operator is licensed.
+            {form.mode === 'demo'
+              ? 'Buy-in and prizes are in cents ($20 = 2000). Paid from the demo balance.'
+              : 'Buy-in and prizes are in cents. Real-money tables cannot be joined until the cash switch is enabled.'}
           </p>
         )}
       </div>
@@ -296,6 +298,7 @@ interface PlayerRow {
   email: string;
   balance: number;
   cash_balance: number;
+  demo_balance: number;
   is_admin: boolean;
   is_banned: boolean;
 }
@@ -305,9 +308,9 @@ function Players() {
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   // Which player, and which balance, an adjust dialog is open for.
-  const [adjusting, setAdjusting] = useState<{ player: PlayerRow; kind: 'points' | 'cash' } | null>(
-    null,
-  );
+  const [adjusting, setAdjusting] = useState<{
+    player: PlayerRow; kind: 'points' | 'cash' | 'demo';
+  } | null>(null);
 
   const load = useCallback(() => {
     api.admin
@@ -326,6 +329,11 @@ function Players() {
   const applyCash = async (id: string, value: string) => {
     // Dollars -> cents, rounded so 12.505 cannot smuggle in a third decimal.
     await api.admin.adjustCash(id, Math.round(Number(value) * 100), 'Admin panel');
+    load();
+  };
+
+  const applyDemo = async (id: string, value: string) => {
+    await api.admin.adjustDemo(id, Math.round(Number(value) * 100), 'Admin panel');
     load();
   };
 
@@ -365,7 +373,8 @@ function Players() {
                 {player.email}
               </div>
               <div className="row-sub">
-                Points <b>{money(player.balance)}</b> · Real money{' '}
+                Points <b>{money(player.balance)}</b> · Demo{' '}
+                <b>{cash(player.demo_balance)}</b> · Real{' '}
                 <b className="gold">{cash(player.cash_balance)}</b>
               </div>
             </div>
@@ -375,6 +384,13 @@ function Players() {
               title="Adjust free-play points"
             >
               ± pts
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setAdjusting({ player, kind: 'demo' })}
+              title="Adjust demo balance"
+            >
+              ± demo
             </button>
             <button
               className="btn btn-sm"
@@ -431,6 +447,28 @@ function Players() {
             !Number.isFinite(Number(v)) || Number(v) === 0 ? 'Enter a non-zero dollar amount.' : null
           }
           onSubmit={(v) => applyCash(adjusting.player.id, v)}
+          onClose={() => setAdjusting(null)}
+        />
+      )}
+
+      {adjusting?.kind === 'demo' && (
+        <PromptDialog
+          title={`Adjust demo · ${adjusting.player.display_name}`}
+          body={
+            <p className="muted">
+              Currently <b>{cash(adjusting.player.demo_balance)}</b> demo. Enter dollars to add
+              (e.g. <b>5</b> or <b>2.50</b>), or a negative number to remove. Demo money has no cash
+              value, but reaching the demo goal earns the player a real bonus.
+            </p>
+          }
+          label="Amount ($ demo)"
+          type="number"
+          placeholder="e.g. 5 or 2.50"
+          confirmLabel="Apply"
+          validate={(v) =>
+            !Number.isFinite(Number(v)) || Number(v) === 0 ? 'Enter a non-zero amount.' : null
+          }
+          onSubmit={(v) => applyDemo(adjusting.player.id, v)}
           onClose={() => setAdjusting(null)}
         />
       )}
