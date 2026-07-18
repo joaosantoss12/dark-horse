@@ -1322,3 +1322,25 @@ img.avatar { object-fit: cover; }
 @media (max-width: 860px) {
   .two-col { grid-template-columns: 1fr; gap: 0; }
 }
+
+/* ---------- table page: wide felt + narrow control rail ---------- */
+.table-layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px;
+  align-items: start;
+}
+.table-main { min-width: 0; }
+.table-side {
+  position: sticky; top: 80px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.table-side .actions { margin-top: 0; }
+.table-side .prize-strip { margin-bottom: 0; }
+.table-side .section-title { margin-top: 4px; }
+
+@media (max-width: 860px) {
+  .table-layout { display: flex; flex-direction: column; gap: 14px; }
+  /* Controls above the felt on a phone, so the join button is the first thing
+     you reach rather than being buried under a tall table. */
+  .table-side { position: static; order: -1; }
+  .table-main { order: 0; }
+}

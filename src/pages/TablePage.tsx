@@ -177,95 +177,106 @@ export function TablePage() {
 
       {error && <div className="error">{error}</div>}
 
-      <div className="actions sticky-actions">
-        {waiting && !seated && !full && (
-          <button className="btn btn-block" disabled={busy} onClick={() => act(() => api.join(room.id))}>
-            Take a seat · {stake(room.mode, room.buyIn)}
-          </button>
-        )}
-
-        {waiting && seated && (
-          <button
-            className="btn btn-ghost btn-block"
-            disabled={busy}
-            onClick={() => act(() => api.leave(room.id))}
-          >
-            Leave table · buy-in refunded
-          </button>
-        )}
-
-        {/* Admin-only: fill the empty seats so a full hand can be demoed alone. */}
-        {profile.is_admin && waiting && seated && !full && (
-          <button
-            className="btn btn-ghost btn-block"
-            disabled={busy}
-            onClick={() => act(() => api.fillBots(room.id))}
-          >
-            🤖 Fill the last {freeSeats} seat{freeSeats === 1 ? '' : 's'} with bots
-          </button>
-        )}
-
-        {waiting && !seated && full && (
-          <button className="btn btn-block" disabled>
-            Table full
-          </button>
-        )}
-
-        {!waiting && (
-          <button className="btn btn-block" disabled>
-            {seated ? 'You are in this hand' : 'Hand in progress'}
-          </button>
-        )}
-      </div>
-
-      <div className="prize-strip">
-        {room.prizes.map((prize, i) => (
-          <div key={i} className="prize">
-            <span className="prize-place">
-              {MEDALS[i]} {ORDINALS[i]}
-            </span>
-            <b>+{stake(room.mode, prize)}</b>
-          </div>
-        ))}
-        <div className="prize muted">
-          <span className="prize-place">Buy-in</span>
-          <b>{stake(room.mode, room.buyIn)}</b>
+      <div className="table-layout">
+        {/* The felt takes the room; everything you do sits in a narrow rail. */}
+        <div className="table-main">
+          <PokerTable room={room} youId={profile.id}>
+            <Dealer room={room} seated={seated} youId={profile.id} />
+          </PokerTable>
         </div>
-      </div>
 
-      <PokerTable room={room} youId={profile.id}>
-        <Dealer room={room} seated={seated} youId={profile.id} />
-      </PokerTable>
+        <aside className="table-side">
+          <div className="actions">
+            {waiting && !seated && !full && (
+              <button
+                className="btn btn-block"
+                disabled={busy}
+                onClick={() => act(() => api.join(room.id))}
+              >
+                Take a seat · {stake(room.mode, room.buyIn)}
+              </button>
+            )}
+
+            {waiting && seated && (
+              <button
+                className="btn btn-ghost btn-block"
+                disabled={busy}
+                onClick={() => act(() => api.leave(room.id))}
+              >
+                Leave table · buy-in refunded
+              </button>
+            )}
+
+            {/* Admin-only: fill the empty seats so a full hand can be demoed alone. */}
+            {profile.is_admin && waiting && seated && !full && (
+              <button
+                className="btn btn-ghost btn-block"
+                disabled={busy}
+                onClick={() => act(() => api.fillBots(room.id))}
+              >
+                🤖 Fill the last {freeSeats} seat{freeSeats === 1 ? '' : 's'} with bots
+              </button>
+            )}
+
+            {waiting && !seated && full && (
+              <button className="btn btn-block" disabled>
+                Table full
+              </button>
+            )}
+
+            {!waiting && (
+              <button className="btn btn-block" disabled>
+                {seated ? 'You are in this hand' : 'Hand in progress'}
+              </button>
+            )}
+          </div>
+
+          <div className="prize-strip">
+            {room.prizes.map((prize, i) => (
+              <div key={i} className="prize">
+                <span className="prize-place">
+                  {MEDALS[i]} {ORDINALS[i]}
+                </span>
+                <b>+{stake(room.mode, prize)}</b>
+              </div>
+            ))}
+            <div className="prize muted">
+              <span className="prize-place">Buy-in</span>
+              <b>{stake(room.mode, room.buyIn)}</b>
+            </div>
+          </div>
+
+          {room.phase === 'results' && (
+            <>
+              <div className="section-title">Result</div>
+              <div className="panel">
+                {[...room.players]
+                  .sort((a, b) => (a.place ?? 99) - (b.place ?? 99))
+                  .map((player) => (
+                    <div key={player.seat} className="row">
+                      <div className="place">{MEDALS[(player.place ?? 9) - 1] ?? player.place}</div>
+                      <div className="row-main">
+                        <div className="row-title">
+                          {player.name}
+                          {player.userId === profile.id && <span className="tag">You</span>}
+                          {player.isBot && <span className="tag bot">Bot</span>}
+                        </div>
+                        <div className="row-sub">
+                          {player.deals.map((d) => d.value).join(' + ')} = <b>{player.totalValue}</b>
+                        </div>
+                      </div>
+                      <div className={`amount ${(player.won ?? 0) > 0 ? 'up' : ''}`}>
+                        {moneyGain(player.won)}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </>
+          )}
+        </aside>
+      </div>
 
       <FloatingChat roomId={room.id} title={`🃏 ${room.name}`} />
-
-      {room.phase === 'results' && (
-        <>
-          <div className="section-title">Result</div>
-          <div className="panel">
-            {[...room.players]
-              .sort((a, b) => (a.place ?? 99) - (b.place ?? 99))
-              .map((player) => (
-                <div key={player.seat} className="row">
-                  <div className="place">{MEDALS[(player.place ?? 9) - 1] ?? player.place}</div>
-                  <div className="row-main">
-                    <div className="row-title">
-                      {player.name}
-                      {player.userId === profile.id && <span className="tag">You</span>}
-                      {player.isBot && <span className="tag bot">Bot</span>}
-                    </div>
-                    <div className="row-sub">
-                      {player.deals.map((d) => d.value).join(' + ')} = <b>{player.totalValue}</b>
-                    </div>
-                  </div>
-                  <div className={`amount ${(player.won ?? 0) > 0 ? 'up' : ''}`}>
-                    {moneyGain(player.won)}
-                  </div>
-                </div>
-              ))}
-          </div>
-        </>
-      )}
     </>
   );
 }
