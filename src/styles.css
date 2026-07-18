@@ -1062,10 +1062,12 @@ img.avatar { object-fit: cover; }
   width: 40px; height: 40px; border-radius: 10px; flex: none;
   display: grid; place-items: center; font-size: 20px;
 }
-.mode-section.free .mode-title-icon { background: rgba(212, 162, 76, 0.15); border: 1px solid #5a4526; }
+.mode-section.free .mode-title-icon { background: rgba(74, 222, 128, 0.15); border: 1px solid #2d6a4f; }
+.mode-section.demo .mode-title-icon { background: rgba(166, 133, 232, 0.15); border: 1px solid #574080; }
 .mode-section.cash .mode-title-icon { background: rgba(74, 160, 255, 0.15); border: 1px solid #37527d; }
 .mode-title-name { font-weight: 800; font-size: 17px; }
-.mode-section.free .mode-title-name { color: var(--gold-soft); }
+.mode-section.free .mode-title-name { color: var(--win); }
+.mode-section.demo .mode-title-name { color: #d3c4ff; }
 .mode-section.cash .mode-title-name { color: #a9c8ff; }
 .mode-title-sub { font-size: 12px; color: var(--muted); }
 
@@ -1075,12 +1077,33 @@ img.avatar { object-fit: cover; }
   font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
   padding: 3px 8px; border-radius: 6px; white-space: nowrap;
 }
-.table-card.free .mode-chip { background: rgba(212, 162, 76, 0.18); color: var(--gold-soft); }
+.table-card.free .mode-chip { background: rgba(74, 222, 128, 0.18); color: var(--win); }
+.table-card.demo .mode-chip { background: rgba(166, 133, 232, 0.18); color: #d3c4ff; }
 .table-card.cash .mode-chip { background: rgba(74, 160, 255, 0.18); color: #a9c8ff; }
 .table-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .table-card-top .pill { margin-left: auto; }
 
-/* Real-money cards get a distinctly cooler, "vault" look vs the warm free felt. */
+/* Each mode gets a distinct felt tint at a glance, so nobody sits down at the
+   wrong table by mistake: green free play, purple demo, blue real money. */
+.table-card.free {
+  border-color: #2d6a4f;
+}
+.table-card.free::after {
+  background: radial-gradient(120% 90% at 85% 0%, rgba(74, 222, 128, 0.16), transparent 60%);
+}
+.table-card.free:hover { border-color: var(--win); }
+.table-card.free .table-meta b { color: var(--win); }
+
+.table-card.demo {
+  background: linear-gradient(140deg, #2a2044, #17122a);
+  border-color: #574080;
+}
+.table-card.demo::after {
+  background: radial-gradient(120% 90% at 85% 0%, rgba(166, 133, 232, 0.18), transparent 60%);
+}
+.table-card.demo:hover { border-color: #a685e8; }
+.table-card.demo .table-meta b { color: #d3c4ff; }
+
 .table-card.cash {
   background: linear-gradient(140deg, #1a3050, #101827);
   border-color: #37527d;
