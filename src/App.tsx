@@ -108,10 +108,6 @@ function Shell() {
             <div className="balance cash" title="Real money">
               <span className="balance-value">{cash(profile.cash_balance)}</span>
             </div>
-            <div className="balance demo" title="Demo balance">
-              <span className="balance-value">{cash(profile.demo_balance)}</span>
-              <span className="balance-unit">demo</span>
-            </div>
             <div className="balance" title="Free-play points">
               <span className="balance-value">{money(profile.balance)}</span>
               <span className="balance-unit">pts</span>
@@ -167,8 +163,7 @@ function Shell() {
                 <div>
                   <div className="drawer-name">{profile.display_name}</div>
                   <div className="drawer-balance">
-                    {cash(profile.cash_balance)} · {cash(profile.demo_balance)} demo ·{' '}
-                    {money(profile.balance)} pts
+                    {cash(profile.cash_balance)} · {money(profile.balance)} pts
                   </div>
                 </div>
               </div>

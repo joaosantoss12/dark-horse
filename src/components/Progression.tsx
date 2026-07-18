@@ -92,7 +92,7 @@ function Referrals() {
     <div className="panel">
       <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
         Invite friends. Every friend who signs up with your link earns you{' '}
-        <b className="gold">{cash(ref.demoPerFriendCents)}</b> demo balance.
+        <b className="gold">{cash(ref.cashPerFriendCents)}</b> real cash.
       </p>
 
       <div className="field">
@@ -107,7 +107,7 @@ function Referrals() {
 
       <div className="wallet-goal-line">
         <span>{ref.count} friend{ref.count === 1 ? '' : 's'} invited</span>
-        <b>{cash(ref.totalDemoEarnedCents)} demo earned</b>
+        <b>{cash(ref.totalCashEarnedCents)} earned</b>
       </div>
     </div>
   );

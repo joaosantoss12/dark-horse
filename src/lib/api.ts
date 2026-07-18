@@ -39,7 +39,7 @@ export interface TablePlayer {
   isSplit: boolean | null;
 }
 
-export type Mode = 'free' | 'demo' | 'cash';
+export type Mode = 'free' | 'cash';
 
 export interface Room {
   id: number;
@@ -76,8 +76,6 @@ export interface Profile {
   balance: number;
   /** Real-money balance, in cents. Divide by 100 to show dollars. */
   cash_balance: number;
-  /** Demo balance, in cents. Play the money-style tables risk-free. */
-  demo_balance: number;
   /** True once real winnings have reached the withdrawal threshold. */
   withdraw_unlocked: boolean;
   is_admin: boolean;
@@ -203,7 +201,7 @@ export const api = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, balance, cash_balance, demo_balance, withdraw_unlocked, is_admin, is_banned, rules_accepted_at')
+      .select('id, display_name, avatar_url, balance, cash_balance, withdraw_unlocked, is_admin, is_banned, rules_accepted_at')
       .eq('id', userId)
       .single();
 
@@ -240,7 +238,7 @@ export const api = {
 
   async referrals(): Promise<{
     code: string; count: number;
-    demoPerFriendCents: number; totalDemoEarnedCents: number;
+    cashPerFriendCents: number; totalCashEarnedCents: number;
   }> {
     return unwrap(await supabase.rpc('dh_my_referrals'));
   },
@@ -342,13 +340,6 @@ export const api = {
     async adjustCash(userId: string, cents: number, note: string) {
       return unwrap<number>(
         await supabase.rpc('dh_admin_adjust_cash', {
-          p_user_id: userId, p_cents: cents, p_note: note,
-        }),
-      );
-    },
-    async adjustDemo(userId: string, cents: number, note: string) {
-      return unwrap<number>(
-        await supabase.rpc('dh_admin_adjust_demo', {
           p_user_id: userId, p_cents: cents, p_note: note,
         }),
       );

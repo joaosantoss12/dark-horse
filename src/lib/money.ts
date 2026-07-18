@@ -3,7 +3,7 @@
  * so a prize, a balance and a buy-in can never drift into different formats.
  *
  * These are internal points, not real currency -- they carry no $ sign so they
- * can never be mistaken for the cash/demo balances, which use `cash()` below.
+ * can never be mistaken for the cash balance, which uses `cash()` below.
  */
 export function money(amount: number | null | undefined): string {
   return (amount ?? 0).toLocaleString();
@@ -35,9 +35,9 @@ export function cash(cents: number | null | undefined): string {
 }
 
 /**
- * A table's buy-in or prize. Free-play tables are counted in points; demo and
+ * A table's buy-in or prize. Free-play tables are counted in points;
  * real-money tables in cents. The unit follows the table's mode.
  */
-export function stake(mode: 'free' | 'demo' | 'cash', amount: number): string {
+export function stake(mode: 'free' | 'cash', amount: number): string {
   return mode === 'free' ? `${amount.toLocaleString()} pts` : cash(amount);
 }

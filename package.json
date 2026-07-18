@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "migrate": "node scripts/migrate.mjs",
-    "test": "npm run test:game && npm run test:security && npm run test:profile && npm run test:realtime && npm run test:modes && npm run test:dealing && npm run test:fill && npm run test:payments && npm run test:funnel && npm run test:referrals && npm run test:chat",
+    "test": "npm run test:game && npm run test:security && npm run test:profile && npm run test:realtime && npm run test:modes && npm run test:dealing && npm run test:fill && npm run test:payments && npm run test:referrals && npm run test:chat",
     "test:game": "node scripts/test-game.mjs",
     "test:security": "node scripts/test-security.mjs",
     "test:profile": "node scripts/test-profile.mjs",
@@ -17,7 +17,6 @@
     "test:dealing": "node scripts/test-dealing.mjs",
     "test:fill": "node scripts/test-fill.mjs",
     "test:payments": "node scripts/test-payments.mjs",
-    "test:funnel": "node scripts/test-funnel.mjs",
     "test:referrals": "node scripts/test-referrals.mjs",
     "test:chat": "node scripts/test-chat.mjs",
     "bench": "node scripts/bench.mjs"

@@ -18,7 +18,6 @@ function badge(room: Room, seated: boolean) {
 
 const MODE_CHIP: Record<Mode, string> = {
   free: '🎮 Free play',
-  demo: '🎬 Demo',
   cash: '💵 Real money',
 };
 
@@ -103,7 +102,6 @@ function Section({
 
   const META: Record<Mode, { icon: string; name: string; sub: string }> = {
     free: { icon: '🎮', name: 'Free Play', sub: 'Play for points. No cash value.' },
-    demo: { icon: '🎬', name: 'Demo', sub: 'Play the money tables risk-free — grow it into a real bonus.' },
     cash: { icon: '💵', name: 'Real Money', sub: 'Play with your real-money balance.' },
   };
   const meta = META[mode];
@@ -167,7 +165,6 @@ export function LobbyPage() {
   if (!rooms || !profile) return <div className="empty">Loading tables…</div>;
 
   const freeRooms = rooms.filter((r) => r.mode === 'free');
-  const demoRooms = rooms.filter((r) => r.mode === 'demo');
   const cashRooms = rooms.filter((r) => r.mode === 'cash');
 
   return (
@@ -178,7 +175,6 @@ export function LobbyPage() {
 
       <div className="lobby-modes">
         <Section mode="free" rooms={freeRooms} youId={profile.id} limits={limits} />
-        <Section mode="demo" rooms={demoRooms} youId={profile.id} limits={limits} />
         <Section mode="cash" rooms={cashRooms} youId={profile.id} limits={limits} />
       </div>
 

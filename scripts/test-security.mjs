@@ -63,7 +63,6 @@ const userId = (await db.query('SELECT id FROM auth.users WHERE email = $1', [EM
 const profile = (await db.query('SELECT * FROM profiles WHERE id = $1', [userId])).rows[0];
 check('creating an account creates a profile automatically', !!profile);
 check('a new player gets the welcome points', Number(profile?.balance) === 10000);
-check('and a demo balance', Number(profile?.demo_balance) === 500);
 
 // Give a round, predictable balance for the cheating tests below.
 await db.query('UPDATE profiles SET balance = 1000 WHERE id = $1', [userId]);

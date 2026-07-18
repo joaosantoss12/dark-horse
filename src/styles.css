@@ -1070,11 +1070,9 @@ img.avatar { object-fit: cover; }
   display: grid; place-items: center; font-size: 20px;
 }
 .mode-section.free .mode-title-icon { background: rgba(74, 222, 128, 0.15); border: 1px solid #2d6a4f; }
-.mode-section.demo .mode-title-icon { background: rgba(166, 133, 232, 0.15); border: 1px solid #574080; }
 .mode-section.cash .mode-title-icon { background: rgba(74, 160, 255, 0.15); border: 1px solid #37527d; }
 .mode-title-name { font-weight: 800; font-size: 17px; }
 .mode-section.free .mode-title-name { color: var(--win); }
-.mode-section.demo .mode-title-name { color: #d3c4ff; }
 .mode-section.cash .mode-title-name { color: #a9c8ff; }
 .mode-title-sub { font-size: 12px; color: var(--muted); }
 
@@ -1085,13 +1083,12 @@ img.avatar { object-fit: cover; }
   padding: 3px 8px; border-radius: 6px; white-space: nowrap;
 }
 .table-card.free .mode-chip { background: rgba(74, 222, 128, 0.18); color: var(--win); }
-.table-card.demo .mode-chip { background: rgba(166, 133, 232, 0.18); color: #d3c4ff; }
 .table-card.cash .mode-chip { background: rgba(74, 160, 255, 0.18); color: #a9c8ff; }
 .table-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .table-card-top .pill { margin-left: auto; }
 
 /* Each mode gets a distinct felt tint at a glance, so nobody sits down at the
-   wrong table by mistake: green free play, purple demo, blue real money. */
+   wrong table by mistake: green free play, blue real money. */
 .table-card.free {
   border-color: #2d6a4f;
 }
@@ -1100,16 +1097,6 @@ img.avatar { object-fit: cover; }
 }
 .table-card.free:hover { border-color: var(--win); }
 .table-card.free .table-meta b { color: var(--win); }
-
-.table-card.demo {
-  background: linear-gradient(140deg, #2a2044, #17122a);
-  border-color: #574080;
-}
-.table-card.demo::after {
-  background: radial-gradient(120% 90% at 85% 0%, rgba(166, 133, 232, 0.18), transparent 60%);
-}
-.table-card.demo:hover { border-color: #a685e8; }
-.table-card.demo .table-meta b { color: #d3c4ff; }
 
 .table-card.cash {
   background: linear-gradient(140deg, #1a3050, #101827);
@@ -1123,20 +1110,12 @@ img.avatar { object-fit: cover; }
 
 .pay-method-icon.bank { background: #2d6a4f; color: #d8f3e6; font-size: 16px; }
 
-/* ---------- demo balance chip ---------- */
-.balance.demo {
-  background: linear-gradient(180deg, #3a2d52, #1e1830);
-  border-color: #574080;
-}
-.balance.demo .balance-value { color: #d3c4ff; }
-
-/* ---------- wallet cards (3 balances + funnel) ---------- */
+/* ---------- wallet cards (balances) ---------- */
 .wallet-card {
   border-radius: var(--radius); border: 1px solid var(--line);
   padding: 16px; margin-bottom: 12px;
 }
 .wallet-card.cash  { background: linear-gradient(150deg, #21365a, #131c2c); border-color: #37527d; }
-.wallet-card.demo  { background: linear-gradient(150deg, #322650, #1a1430); border-color: #574080; }
 .wallet-card.points{ background: linear-gradient(150deg, #2a2013, #1a1410); border-color: #5a4526; }
 .wallet-card-head { display: flex; align-items: flex-start; gap: 12px; }
 .wallet-card-head > div:first-child { flex: 1; }
@@ -1146,7 +1125,6 @@ img.avatar { object-fit: cover; }
 }
 .wallet-amount { font-size: 26px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .wallet-amount.cash { color: #cfe0ff; }
-.wallet-amount.demo { color: #d3c4ff; }
 .wallet-amount.points { color: var(--gold-soft); }
 .wallet-actions { display: flex; gap: 8px; flex: none; }
 .wallet-sub { font-size: 12px; color: var(--muted); text-align: right; max-width: 160px; }
@@ -1207,7 +1185,6 @@ img.avatar { object-fit: cover; }
   border-radius: 12px; border: 1px solid var(--line); padding: 11px 12px;
 }
 .wallet-chip.cash   { background: linear-gradient(150deg, #21365a, #131c2c); border-color: #37527d; }
-.wallet-chip.demo   { background: linear-gradient(150deg, #322650, #1a1430); border-color: #574080; }
 .wallet-chip.points { background: linear-gradient(150deg, #2a2013, #1a1410); border-color: #5a4526; }
 .wallet-chip-label {
   font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em;
@@ -1217,17 +1194,9 @@ img.avatar { object-fit: cover; }
   font-size: 19px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums;
 }
 .wallet-chip.cash .wallet-chip-amount { color: #cfe0ff; }
-.wallet-chip.demo .wallet-chip-amount { color: #d3c4ff; }
 .wallet-chip.points .wallet-chip-amount { color: var(--gold-soft); }
-.wallet-chip-bar {
-  height: 4px; border-radius: 3px; margin-top: 8px; overflow: hidden;
-  background: rgba(255, 255, 255, 0.12);
-}
-.wallet-chip-bar span { display: block; height: 100%; background: var(--gold-soft); }
-.wallet-chip.cash .wallet-chip-bar span { background: #a9c8ff; }
 
 .wallet-buttons { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.wallet-hint { font-size: 12px; color: var(--muted); }
 
 .wallet-rules { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--panel-2, rgba(255,255,255,0.03)); border: 1px solid var(--border, rgba(255,255,255,0.08)); }
 .wallet-rules-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }

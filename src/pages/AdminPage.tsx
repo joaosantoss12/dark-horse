@@ -82,14 +82,11 @@ function RoomEditor({ initial, onDone }: { initial: RoomForm; onDone: () => void
           onChange={(e) => setForm({ ...form, mode: e.target.value as Mode })}
         >
           <option value="free">Free — points, subject to the daily limit</option>
-          <option value="demo">Demo — demo cash, live and risk-free</option>
           <option value="cash">Real money — locked until enabled</option>
         </select>
         {form.mode !== 'free' && (
           <p className="field-note">
-            {form.mode === 'demo'
-              ? 'Buy-in and prizes are in cents ($20 = 2000). Paid from the demo balance.'
-              : 'Buy-in and prizes are in cents. Real-money tables cannot be joined until the cash switch is enabled.'}
+            Buy-in and prizes are in cents. Real-money tables cannot be joined until the cash switch is enabled.
           </p>
         )}
       </div>
@@ -299,7 +296,6 @@ interface PlayerRow {
   email: string;
   balance: number;
   cash_balance: number;
-  demo_balance: number;
   is_admin: boolean;
   is_banned: boolean;
 }
@@ -310,7 +306,7 @@ function Players() {
   const [error, setError] = useState<string | null>(null);
   // Which player, and which balance, an adjust dialog is open for.
   const [adjusting, setAdjusting] = useState<{
-    player: PlayerRow; kind: 'points' | 'cash' | 'demo';
+    player: PlayerRow; kind: 'points' | 'cash';
   } | null>(null);
 
   const load = useCallback(() => {
@@ -330,11 +326,6 @@ function Players() {
   const applyCash = async (id: string, value: string) => {
     // Dollars -> cents, rounded so 12.505 cannot smuggle in a third decimal.
     await api.admin.adjustCash(id, Math.round(Number(value) * 100), 'Admin panel');
-    load();
-  };
-
-  const applyDemo = async (id: string, value: string) => {
-    await api.admin.adjustDemo(id, Math.round(Number(value) * 100), 'Admin panel');
     load();
   };
 
@@ -374,8 +365,7 @@ function Players() {
                 {player.email}
               </div>
               <div className="row-sub">
-                Points <b>{money(player.balance)}</b> · Demo{' '}
-                <b>{cash(player.demo_balance)}</b> · Real{' '}
+                Points <b>{money(player.balance)}</b> · Real{' '}
                 <b className="gold">{cash(player.cash_balance)}</b>
               </div>
             </div>
@@ -385,13 +375,6 @@ function Players() {
               title="Adjust free-play points"
             >
               ± pts
-            </button>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setAdjusting({ player, kind: 'demo' })}
-              title="Adjust demo balance"
-            >
-              ± demo
             </button>
             <button
               className="btn btn-sm"
@@ -448,28 +431,6 @@ function Players() {
             !Number.isFinite(Number(v)) || Number(v) === 0 ? 'Enter a non-zero dollar amount.' : null
           }
           onSubmit={(v) => applyCash(adjusting.player.id, v)}
-          onClose={() => setAdjusting(null)}
-        />
-      )}
-
-      {adjusting?.kind === 'demo' && (
-        <PromptDialog
-          title={`Adjust demo · ${adjusting.player.display_name}`}
-          body={
-            <p className="muted">
-              Currently <b>{cash(adjusting.player.demo_balance)}</b> demo. Enter dollars to add
-              (e.g. <b>5</b> or <b>2.50</b>), or a negative number to remove. Demo money has no cash
-              value, but reaching the demo goal earns the player a real bonus.
-            </p>
-          }
-          label="Amount ($ demo)"
-          type="number"
-          placeholder="e.g. 5 or 2.50"
-          confirmLabel="Apply"
-          validate={(v) =>
-            !Number.isFinite(Number(v)) || Number(v) === 0 ? 'Enter a non-zero amount.' : null
-          }
-          onSubmit={(v) => applyDemo(adjusting.player.id, v)}
           onClose={() => setAdjusting(null)}
         />
       )}
@@ -748,7 +709,7 @@ function Bank() {
     <>
       <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
         Rake is what the platform actually earns from real-money hands. Deposits, withdrawals and
-        demo→real bonuses are shown for context, not counted as profit on their own.
+        referral bonuses are shown for context, not counted as profit on their own.
       </p>
 
       <div className="panel grid-2 stats" style={{ marginBottom: 14 }}>
@@ -758,7 +719,7 @@ function Bank() {
         </div>
         <div className={`stat ${net < 0 ? 'down' : ''}`}>
           <b className={net >= 0 ? 'gold' : ''}>{cash(net)}</b>
-          <span>Rake minus demo→real bonuses granted</span>
+          <span>Rake minus referral bonuses granted</span>
         </div>
       </div>
 
@@ -786,8 +747,8 @@ function Bank() {
         </div>
         <div className="row">
           <div className="row-main">
-            <div className="row-title">Demo→real bonuses granted</div>
-            <div className="row-sub">$20 unlocks each time a demo balance hits $200</div>
+            <div className="row-title">Referral bonuses granted</div>
+            <div className="row-sub">Real cash paid to referrers when a friend joins</div>
           </div>
           <div className="amount">{cash(bank.bonusesCents)}</div>
         </div>
@@ -837,10 +798,6 @@ export function AdminPage() {
         <div className="stat">
           <b>{stats?.pointsInPlay ?? '—'}</b>
           <span>Points in play</span>
-        </div>
-        <div className="stat">
-          <b>{stats ? cash(stats.demoInPlay) : '—'}</b>
-          <span>Demo in play</span>
         </div>
         <div className="stat">
           <b>{stats ? cash(stats.cashInPlay) : '—'}</b>

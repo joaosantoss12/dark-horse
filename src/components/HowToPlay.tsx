@@ -100,11 +100,7 @@ export function HowToPlay() {
             (Portugal time), once a week. They can&apos;t be withdrawn or turned into real money.
           </li>
           <li>
-            <b>Demo</b> starts at $20 when you join. It&apos;s practice money: grow it to $200
-            and $20 of it converts to real cash — once — and you keep playing with the rest.
-          </li>
-          <li>
-            <b>Real money</b> is yours. Withdraw it any time once you&apos;ve unlocked it.
+            <b>Real money</b> is yours. Withdraw it any time.
           </li>
         </ul>
       </section>
