@@ -32,7 +32,7 @@ export function FloatingChat({ roomId, title }: { roomId: number | null; title: 
     }
   });
 
-  const drag = useRef<{ dx: number; dy: number } | null>(null);
+  const drag = useRef<{ dx: number; dy: number; w: number } | null>(null);
 
   useEffect(() => {
     localStorage.setItem(openKey, open ? '1' : '0');
@@ -46,12 +46,12 @@ export function FloatingChat({ roomId, title }: { roomId: number | null; title: 
     if ((e.target as HTMLElement).closest('.fchat-controls')) return;
     const panel = (e.currentTarget as HTMLElement).closest('.fchat') as HTMLElement;
     const rect = panel.getBoundingClientRect();
-    drag.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+    drag.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top, w: rect.width };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag.current) return;
-    const w = 320;
+    const w = drag.current.w;
     const x = Math.min(Math.max(8, e.clientX - drag.current.dx), window.innerWidth - w - 8);
     const y = Math.min(Math.max(8, e.clientY - drag.current.dy), window.innerHeight - 60);
     setPos({ x, y });
@@ -70,7 +70,13 @@ export function FloatingChat({ roomId, title }: { roomId: number | null; title: 
     );
   }
 
-  const style = pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined;
+  // Below 480px the panel is pinned edge-to-edge by CSS (`.fchat { left/right: 8px }`)
+  // so it can never run off a phone screen. A drag position saved on a wider
+  // screen is only meaningful there -- applying it here would override that
+  // safety rule with stale pixel coordinates and push the panel past the edge.
+  const mobile = typeof window !== 'undefined' && window.innerWidth <= 480;
+  const style =
+    pos && !mobile ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined;
 
   return (
     <div className={`fchat ${collapsed ? 'collapsed' : ''}`} style={style}>
