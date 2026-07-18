@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
-import { DailyReward } from './components/DailyReward';
 import { RulesGate } from './components/RulesGate';
 import { SUPPORT_URL, SupportLink, TelegramIcon } from './components/Support';
+import { WeeklyReward } from './components/WeeklyReward';
 import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
 import { cash, money } from './lib/money';
 import { startNotifier } from './lib/notify';
@@ -224,7 +224,7 @@ function Shell() {
         </Routes>
       </main>
 
-      <DailyReward />
+      <WeeklyReward />
     </>
   );
 }

@@ -8,9 +8,10 @@ import { useAuth } from '../lib/useAuth';
 
 type Flow = 'deposit' | 'withdraw';
 
-// The funnel threshold, mirrored from the DB settings for display. The database
-// is the source of truth; this is only for the progress bar.
-const DEMO_WITHDRAW_GOAL_CENTS = 10000; // $100 demo -> converts to real money, withdraw unlocks
+// The funnel threshold and payout, mirrored from the DB settings for display.
+// The database is the source of truth; this is only for the progress bar.
+const DEMO_WITHDRAW_GOAL_CENTS = 20000; // $200 demo -> unlocks withdrawals
+const DEMO_WITHDRAW_PAYOUT_CENTS = 2000; // $20 of that converts to real cash
 
 const COPY: Record<Flow, { title: string; verb: string; line: string }> = {
   deposit: {
@@ -144,7 +145,7 @@ export function Wallet() {
           disabled={!canWithdraw}
           title={
             !profile.withdraw_unlocked
-              ? `Grow your demo balance to ${cash(DEMO_WITHDRAW_GOAL_CENTS)} to unlock withdrawals`
+              ? `Grow your demo balance to ${cash(DEMO_WITHDRAW_GOAL_CENTS)} to unlock a ${cash(DEMO_WITHDRAW_PAYOUT_CENTS)} withdrawal`
               : profile.cash_balance <= 0
                 ? 'Nothing to withdraw yet'
                 : undefined
@@ -154,9 +155,28 @@ export function Wallet() {
         </button>
         {!profile.withdraw_unlocked && (
           <span className="wallet-hint">
-            Grow demo to {cash(DEMO_WITHDRAW_GOAL_CENTS)} to unlock withdrawals
+            Grow demo to {cash(DEMO_WITHDRAW_GOAL_CENTS)} to unlock a {cash(DEMO_WITHDRAW_PAYOUT_CENTS)} withdrawal
           </span>
         )}
+      </div>
+
+      <div className="wallet-rules">
+        <div className="wallet-rules-title">How the balances work</div>
+        <ul>
+          <li>
+            <b>Points</b> are free play — everyone gets 2,000 for visiting from 8am Friday
+            (Portugal time), once a week. They can&apos;t be withdrawn or converted into real
+            money.
+          </li>
+          <li>
+            <b>Demo</b> starts at {cash(2000)} when you join. It&apos;s practice money: grow it to{' '}
+            {cash(DEMO_WITHDRAW_GOAL_CENTS)} and {cash(DEMO_WITHDRAW_PAYOUT_CENTS)} of it converts
+            to real cash, one time, and you can keep playing with the rest.
+          </li>
+          <li>
+            <b>Real money</b> is yours — withdraw it any time once unlocked.
+          </li>
+        </ul>
       </div>
 
       {flow && <PaymentModal flow={flow} onClose={() => setFlow(null)} />}

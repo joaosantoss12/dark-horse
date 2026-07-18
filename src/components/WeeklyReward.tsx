@@ -6,11 +6,12 @@ import { money } from '../lib/money';
 import { useAuth } from '../lib/useAuth';
 
 /**
- * Claims the daily login reward once per mount, right after a profile is
- * available. The server is the one that actually decides whether today has
- * already been claimed -- this just surfaces the result when it's a yes.
+ * Claims the weekly Friday reward once per mount, right after a profile is
+ * available. The server is the one that decides whether this week's window
+ * (Friday 08:00 Portugal time onward) has already been claimed -- this just
+ * surfaces the result when it's a yes.
  */
-export function DailyReward() {
+export function WeeklyReward() {
   const { profile, refresh } = useAuth();
   const [amount, setAmount] = useState<number | null>(null);
   const claimedFor = useRef<string | null>(null);
@@ -20,7 +21,7 @@ export function DailyReward() {
     claimedFor.current = profile.id;
 
     void api
-      .claimDaily()
+      .claimWeekly()
       .then((r) => {
         if (r.claimed) {
           setAmount(r.amount);
@@ -33,10 +34,10 @@ export function DailyReward() {
   if (amount == null) return null;
 
   return (
-    <Modal title="🎁 Daily reward" onClose={() => setAmount(null)}>
+    <Modal title="🎁 Weekly reward" onClose={() => setAmount(null)}>
       <p>
-        You just earned <b className="gold">{money(amount)}</b> points for visiting today. Come
-        back tomorrow for more.
+        You just earned <b className="gold">{money(amount)}</b> points — your weekly Friday
+        bonus. Come back next Friday for more.
       </p>
       <button className="btn btn-block" onClick={() => setAmount(null)}>
         Nice!

@@ -87,10 +87,6 @@ export interface Profile {
 }
 
 export interface Limits {
-  freeHandsUsed: number;
-  freeHandsPerDay: number;
-  freeHandsLeft: number;
-  resetsAt: string;
   /** Real money is off until the operator is licensed. */
   cashEnabled: boolean;
 }
@@ -250,8 +246,8 @@ export const api = {
   },
 
   /** Once per UTC calendar day; a repeat call just reports claimed: false. */
-  async claimDaily(): Promise<{ claimed: boolean; amount: number; balance?: number }> {
-    return unwrap(await supabase.rpc('dh_claim_daily'));
+  async claimWeekly(): Promise<{ claimed: boolean; amount: number; balance?: number }> {
+    return unwrap(await supabase.rpc('dh_claim_weekly'));
   },
 
   /** Ties this browser's device token to the signed-in account. */
@@ -355,12 +351,6 @@ export const api = {
         await supabase.rpc('dh_admin_adjust_demo', {
           p_user_id: userId, p_cents: cents, p_note: note,
         }),
-      );
-    },
-    /** Per-user free-plays-per-day override. Null clears it (back to global). */
-    async setFreeHands(userId: string, value: number | null) {
-      return unwrap(
-        await supabase.rpc('dh_admin_set_free_hands', { p_user_id: userId, p_value: value }),
       );
     },
     async paymentRequests(includeDone = false) {

@@ -93,6 +93,23 @@ export function HowToPlay() {
       </section>
 
       <section className="rule-block">
+        <h3>Your balances</h3>
+        <ul className="rule-list">
+          <li>
+            <b>Points</b> are free play — everyone gets 2,000 for visiting from 8am Friday
+            (Portugal time), once a week. They can&apos;t be withdrawn or turned into real money.
+          </li>
+          <li>
+            <b>Demo</b> starts at $20 when you join. It&apos;s practice money: grow it to $200
+            and $20 of it converts to real cash — once — and you keep playing with the rest.
+          </li>
+          <li>
+            <b>Real money</b> is yours. Withdraw it any time once you&apos;ve unlocked it.
+          </li>
+        </ul>
+      </section>
+
+      <section className="rule-block">
         <h3>Winning</h3>
         <p>
           When the last seat fills, the dealer deals. Everyone is ranked, strongest first:{' '}

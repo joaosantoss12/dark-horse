@@ -100,7 +100,6 @@ function Section({
   if (rooms.length === 0) return null;
 
   const cashLocked = mode === 'cash' && !limits?.cashEnabled;
-  const outOfHands = mode === 'free' && limits != null && limits.freeHandsLeft <= 0;
 
   const META: Record<Mode, { icon: string; name: string; sub: string }> = {
     free: { icon: '🎮', name: 'Free Play', sub: 'Play for points. No cash value.' },
@@ -120,25 +119,12 @@ function Section({
           </div>
         </div>
 
-        {mode === 'free' && limits && (
-          <div className={`hands-left ${outOfHands ? 'spent' : ''}`}>
-            <b>{limits.freeHandsLeft}</b> of {limits.freeHandsPerDay} free hands left today
-          </div>
-        )}
-
         {cashLocked && <div className="hands-left">Not open yet</div>}
       </div>
 
-      {outOfHands && (
-        <div className="notice limit-notice">
-          You have used all {limits.freeHandsPerDay} of today's free hands. They reset at midnight
-          UTC.
-        </div>
-      )}
-
       <div className="table-grid">
         {rooms.map((room) => (
-          <TableCard key={room.id} room={room} youId={youId} locked={cashLocked || outOfHands} />
+          <TableCard key={room.id} room={room} youId={youId} locked={cashLocked} />
         ))}
       </div>
     </section>

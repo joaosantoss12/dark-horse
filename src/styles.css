@@ -813,8 +813,6 @@ img.avatar { object-fit: cover; }
   white-space: nowrap;
 }
 .hands-left b { color: var(--gold-soft); font-variant-numeric: tabular-nums; }
-.hands-left.spent b { color: var(--lose); }
-.limit-notice { margin-bottom: 12px; }
 
 /* A real-money table looks different at a glance, so nobody sits down by
    accident thinking it is free. */
@@ -1221,6 +1219,11 @@ img.avatar { object-fit: cover; }
 
 .wallet-buttons { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .wallet-hint { font-size: 12px; color: var(--muted); }
+
+.wallet-rules { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--panel-2, rgba(255,255,255,0.03)); border: 1px solid var(--border, rgba(255,255,255,0.08)); }
+.wallet-rules-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+.wallet-rules ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.wallet-rules li { font-size: 13px; line-height: 1.4; color: var(--text-2, #cfcfcf); }
 
 @media (max-width: 480px) {
   .wallet-chip-amount { font-size: 16px; }
