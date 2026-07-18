@@ -299,6 +299,7 @@ interface PlayerRow {
   balance: number;
   cash_balance: number;
   demo_balance: number;
+  free_hands_override: number | null;
   is_admin: boolean;
   is_banned: boolean;
 }
@@ -311,6 +312,7 @@ function Players() {
   const [adjusting, setAdjusting] = useState<{
     player: PlayerRow; kind: 'points' | 'cash' | 'demo';
   } | null>(null);
+  const [freeHands, setFreeHands] = useState<PlayerRow | null>(null);
 
   const load = useCallback(() => {
     api.admin
@@ -334,6 +336,12 @@ function Players() {
 
   const applyDemo = async (id: string, value: string) => {
     await api.admin.adjustDemo(id, Math.round(Number(value) * 100), 'Admin panel');
+    load();
+  };
+
+  const applyFreeHands = async (id: string, value: string) => {
+    // Blank clears the override (back to the global default).
+    await api.admin.setFreeHands(id, value.trim() === '' ? null : Math.round(Number(value)));
     load();
   };
 
@@ -376,6 +384,9 @@ function Players() {
                 Points <b>{money(player.balance)}</b> · Demo{' '}
                 <b>{cash(player.demo_balance)}</b> · Real{' '}
                 <b className="gold">{cash(player.cash_balance)}</b>
+                {player.free_hands_override != null && (
+                  <> · Free plays/day <b>{player.free_hands_override}</b></>
+                )}
               </div>
             </div>
             <button
@@ -398,6 +409,13 @@ function Players() {
               title="Adjust real-money balance"
             >
               ± $
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setFreeHands(player)}
+              title="Set this player's free plays per day"
+            >
+              free
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => toggleBan(player)}>
               {player.is_banned ? 'Unban' : 'Ban'}
@@ -470,6 +488,33 @@ function Players() {
           }
           onSubmit={(v) => applyDemo(adjusting.player.id, v)}
           onClose={() => setAdjusting(null)}
+        />
+      )}
+
+      {freeHands && (
+        <PromptDialog
+          title={`Free plays per day · ${freeHands.display_name}`}
+          body={
+            <p className="muted">
+              How many free-play hands this player may start each day.{' '}
+              {freeHands.free_hands_override == null
+                ? 'Currently using the global default.'
+                : `Currently overridden to ${freeHands.free_hands_override}.`}{' '}
+              Leave blank to clear the override and use the global default.
+            </p>
+          }
+          label="Free plays per day"
+          type="number"
+          placeholder="e.g. 3 (blank = default)"
+          initial={freeHands.free_hands_override?.toString() ?? ''}
+          confirmLabel="Apply"
+          validate={(v) =>
+            v === '' || (Number.isInteger(Number(v)) && Number(v) >= 0)
+              ? null
+              : 'Enter a whole number of 0 or more, or leave blank.'
+          }
+          onSubmit={(v) => applyFreeHands(freeHands.id, v)}
+          onClose={() => setFreeHands(null)}
         />
       )}
     </>

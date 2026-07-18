@@ -346,6 +346,12 @@ export const api = {
         }),
       );
     },
+    /** Per-user free-plays-per-day override. Null clears it (back to global). */
+    async setFreeHands(userId: string, value: number | null) {
+      return unwrap(
+        await supabase.rpc('dh_admin_set_free_hands', { p_user_id: userId, p_value: value }),
+      );
+    },
     async paymentRequests(includeDone = false) {
       return unwrap(
         await supabase.rpc('dh_admin_payment_requests', { p_include_done: includeDone }),
