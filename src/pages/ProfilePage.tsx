@@ -106,10 +106,12 @@ export function ProfilePage() {
     <>
       <Wallet />
 
-      <div className="section-title">Profile</div>
-
       {error && <div className="error">{error}</div>}
       {saved && <div className="notice">Saved.</div>}
+
+      <div className="two-col">
+      <div className="col">
+      <div className="section-title">Profile</div>
 
       <div className="panel profile-head">
         <button
@@ -206,7 +208,9 @@ export function ProfilePage() {
           </div>
         )}
       </div>
+      </div>
 
+      <div className="col">
       <Progression gamesPlayed={played} />
 
       <div className="section-title">Display name</div>
@@ -224,6 +228,8 @@ export function ProfilePage() {
         <button className="btn" disabled={busy || name.trim() === profile.display_name} onClick={save}>
           {busy ? 'Saving…' : 'Save'}
         </button>
+      </div>
+      </div>
       </div>
 
       {/* The top bar's sign-out icon is hidden on small screens, so this is the

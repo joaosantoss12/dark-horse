@@ -1311,3 +1311,14 @@ img.avatar { object-fit: cover; }
 @media (max-width: 480px) {
   .fchat { left: 8px; right: 8px; width: auto; }
 }
+
+/* ---------- generic two-column layout (history, profile) ---------- */
+.two-col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;
+}
+/* The first section-title in each column shouldn't add big top margin. */
+.two-col .col > .section-title:first-child { margin-top: 4px; }
+
+@media (max-width: 860px) {
+  .two-col { grid-template-columns: 1fr; gap: 0; }
+}

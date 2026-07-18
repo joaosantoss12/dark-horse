@@ -34,7 +34,8 @@ export function HistoryPage() {
   }, []);
 
   return (
-    <>
+    <div className="two-col">
+      <div className="col">
       <div className="section-title">Your last hands</div>
       <div className="panel">
         {rounds === null && <div className="muted">Loading…</div>}
@@ -78,7 +79,9 @@ export function HistoryPage() {
           </div>
         ))}
       </div>
+      </div>
 
+      <div className="col">
       <div className="section-title">Top winners</div>
       <div className="panel">
         {leaders.length === 0 && <div className="muted">No winners yet.</div>}
@@ -93,6 +96,7 @@ export function HistoryPage() {
           </div>
         ))}
       </div>
-    </>
+      </div>
+    </div>
   );
 }
