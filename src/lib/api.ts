@@ -237,8 +237,8 @@ export const api = {
   },
 
   async referrals(): Promise<{
-    code: string; count: number;
-    cashPerFriendCents: number; totalCashEarnedCents: number;
+    code: string; count: number; goal: number;
+    perFriendPoints: number; goalBonusCents: number; bonusAwarded: boolean;
   }> {
     return unwrap(await supabase.rpc('dh_my_referrals'));
   },

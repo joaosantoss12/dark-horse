@@ -88,11 +88,14 @@ function Referrals() {
     }
   };
 
+  const toGo = Math.max(0, ref.goal - ref.count);
+
   return (
     <div className="panel">
       <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
         Invite friends. Every friend who signs up with your link earns you{' '}
-        <b className="gold">{cash(ref.cashPerFriendCents)}</b> real cash.
+        <b className="gold">{ref.perFriendPoints.toLocaleString()} points</b>. Invite {ref.goal}{' '}
+        and earn a <b className="gold">{cash(ref.goalBonusCents)}</b> real-cash bonus.
       </p>
 
       <div className="field">
@@ -107,7 +110,11 @@ function Referrals() {
 
       <div className="wallet-goal-line">
         <span>{ref.count} friend{ref.count === 1 ? '' : 's'} invited</span>
-        <b>{cash(ref.totalCashEarnedCents)} earned</b>
+        <b>
+          {ref.bonusAwarded
+            ? `${cash(ref.goalBonusCents)} bonus earned`
+            : `${toGo} to go for ${cash(ref.goalBonusCents)}`}
+        </b>
       </div>
     </div>
   );
