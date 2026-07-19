@@ -7,7 +7,7 @@ import { WeeklyReward } from './components/WeeklyReward';
 import { CloseIcon, HorseMark, MenuIcon, SignOutIcon } from './components/icons';
 import { cash, money } from './lib/money';
 import { startNotifier } from './lib/notify';
-import { startPresence } from './lib/presence';
+import { startPresence, watchOnlineCount } from './lib/presence';
 import { AuthProvider, useAuth } from './lib/useAuth';
 import { AdminPage } from './pages/AdminPage';
 import { AuthPage } from './pages/AuthPage';
@@ -20,6 +20,7 @@ function Shell() {
   const { profile, signOut } = useAuth();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [online, setOnline] = useState(0);
 
   // Watches every table for the whole session, from whatever page you are on --
   // not just the lobby. A player who is told a game is forming while looking at
@@ -33,6 +34,8 @@ function Shell() {
     if (!profile?.id) return;
     return startPresence(profile.id);
   }, [profile?.id]);
+
+  useEffect(() => watchOnlineCount(setOnline), []);
 
   // Navigating is the whole point of the menu, so it must close when you do.
   useEffect(() => setMenuOpen(false), [pathname]);
@@ -76,6 +79,11 @@ function Shell() {
             DARK<em>HORSE</em>
           </span>
         </Link>
+
+        <div className="online-pill desktop-only" title="Players online now">
+          <span className="online-dot" aria-hidden="true" />
+          {online} online
+        </div>
 
         {/* Desktop navigation. On phones this is replaced by the drawer below. */}
         <nav className="nav" aria-label="Main">
@@ -175,6 +183,11 @@ function Shell() {
               >
                 <CloseIcon />
               </button>
+            </div>
+
+            <div className="online-pill drawer-online" title="Players online now">
+              <span className="online-dot" aria-hidden="true" />
+              {online} online
             </div>
 
             <div className="drawer-links">

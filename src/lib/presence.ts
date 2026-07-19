@@ -9,8 +9,9 @@ const TOPIC = 'online-users';
  * RealtimeChannel objects on the same topic on one socket is not allowed --
  * supabase-js throws "cannot add `presence` callbacks ... after subscribe()"
  * the moment a second one tries to register a listener. Every visitor runs
- * `startPresence` (from Shell) and an admin additionally runs
- * `watchOnlineCount`, so this has to be reference-counted, not per-call.
+ * both `startPresence` (from Shell, to be counted) and `watchOnlineCount`
+ * (to show the count in the topbar), so this has to be reference-counted,
+ * not per-call.
  */
 let channel: RealtimeChannel | null = null;
 let readyPromise: Promise<void> | null = null;
@@ -73,7 +74,7 @@ export function startPresence(userId: string): () => void {
   return release;
 }
 
-/** Admin-only: watches the same channel and reports how many keys are present. */
+/** Watches the same channel and reports how many keys are present. */
 export function watchOnlineCount(onChange: (count: number) => void): () => void {
   acquire(`admin-${Date.now()}`);
   countListeners.add(onChange);
