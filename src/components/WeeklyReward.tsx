@@ -8,7 +8,7 @@ import { useAuth } from '../lib/useAuth';
 /**
  * Claims the weekly Friday reward once per mount, right after a profile is
  * available. The server is the one that decides whether this week's window
- * (Friday 08:00 Portugal time onward) has already been claimed -- this just
+ * (Friday 10:00 German time onward) has already been claimed -- this just
  * surfaces the result when it's a yes.
  */
 export function WeeklyReward() {

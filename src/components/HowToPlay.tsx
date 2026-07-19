@@ -96,8 +96,8 @@ export function HowToPlay() {
         <h3>Your balances</h3>
         <ul className="rule-list">
           <li>
-            <b>Points</b> are free play — everyone gets 2,000 for visiting from 8am Friday
-            (Portugal time), once a week. They can&apos;t be withdrawn or turned into real money.
+            <b>Points</b> are free play — everyone gets 2,000 for visiting from 10am Friday
+            (German time), once a week. They can&apos;t be withdrawn or turned into real money.
           </li>
           <li>
             <b>Real money</b> is yours. Withdraw it any time.
