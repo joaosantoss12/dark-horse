@@ -1252,19 +1252,16 @@ img.avatar { object-fit: cover; }
 .chat-input { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .chat-input .input { flex: 1; }
 
-/* ---------- 3-column lobby (one per mode) ---------- */
+/* ---------- 2-column lobby (one per mode) ---------- */
 .lobby-modes {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
   align-items: start;
 }
 .lobby-modes .mode-section { margin-bottom: 0; }
-/* Inside a narrow column the table cards stack. */
-.lobby-modes .table-grid { grid-template-columns: 1fr; }
-.lobby-modes .mode-title-sub { display: none; }   /* too tight in a column */
+.lobby-modes .table-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 
 @media (max-width: 900px) {
   .lobby-modes { grid-template-columns: 1fr; }
-  .lobby-modes .mode-title-sub { display: block; }
   .lobby-modes .table-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 }
 
