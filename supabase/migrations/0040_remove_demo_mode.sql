@@ -442,5 +442,11 @@ GRANT EXECUTE ON FUNCTION dh_admin_players(TEXT) TO authenticated;
 ALTER TABLE profiles DROP COLUMN IF EXISTS demo_balance;
 ALTER TABLE profiles DROP COLUMN IF EXISTS demo_bonus_awarded;
 
+-- The retire block above only flips is_active/is_deleted on the live demo
+-- room -- it never touches mode. Any demo room, live or already soft-deleted
+-- by an earlier migration (e.g. 0035_remove_demo_50.sql), still has
+-- mode = 'demo' and would violate the tightened check below.
+UPDATE rooms SET mode = 'free' WHERE mode = 'demo';
+
 ALTER TABLE rooms DROP CONSTRAINT IF EXISTS rooms_mode_check;
 ALTER TABLE rooms ADD CONSTRAINT rooms_mode_check CHECK (mode IN ('free', 'cash'));
