@@ -1,26 +1,26 @@
 -- Bots were named "Bot Ada", "Bot Rex", etc. from a 7-name array -- an
 -- instant giveaway when a bot fills a seat next to real players. Give bots
--- ordinary human names instead, drawn from a 500-name pool, so a filled
--- seat reads like any other player.
+-- gamer-tag-style handles instead ("shadow_wolf42"), drawn from a 500-name
+-- pool, so a filled seat reads like any other player.
 
 CREATE OR REPLACE FUNCTION dh_bot_name_pool()
 RETURNS TEXT[]
 LANGUAGE sql IMMUTABLE
 AS $$
   SELECT ARRAY(
-    SELECT f || ' ' || l
+    SELECT lower(a) || '_' || lower(n) || ((row_number() OVER (ORDER BY a, n) % 90) + 10)::text
       FROM unnest(ARRAY[
-        'James', 'Michael', 'Robert', 'John', 'David', 'William', 'Richard', 'Joseph',
-        'Thomas', 'Daniel', 'Matthew', 'Anthony', 'Mark', 'Paul', 'Steven', 'Andrew',
-        'Kenneth', 'Joshua', 'Kevin', 'Brian', 'Sarah', 'Emily', 'Jessica', 'Ashley',
-        'Amanda', 'Melissa', 'Michelle', 'Laura', 'Rachel', 'Nicole'
-      ]) AS f
+        'Shadow', 'Silent', 'Iron', 'Golden', 'Crimson', 'Frozen', 'Silver', 'Dark',
+        'Swift', 'Lone', 'Mighty', 'Wild', 'Lucky', 'Royal', 'Savage', 'Blazing',
+        'Midnight', 'Electric', 'Phantom', 'Rogue', 'Brave', 'Fierce', 'Rapid',
+        'Cosmic', 'Sneaky'
+      ]) AS a
       CROSS JOIN unnest(ARRAY[
-        'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis',
-        'Rodriguez', 'Martinez', 'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Moore',
-        'Jackson', 'Martin'
-      ]) AS l
-     ORDER BY f, l
+        'Wolf', 'Fox', 'Hawk', 'Tiger', 'Dragon', 'Phoenix', 'Falcon', 'Panther',
+        'Raven', 'Viper', 'Bear', 'Eagle', 'Lion', 'Shark', 'Cobra', 'Wolverine',
+        'Puma', 'Lynx', 'Jaguar', 'Griffin'
+      ]) AS n
+     ORDER BY a, n
      LIMIT 500
   );
 $$;
