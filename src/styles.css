@@ -399,7 +399,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 9px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
   padding: 2px 6px; border-radius: 5px; background: var(--gold); color: #2a1d08;
 }
-.tag.bot, .tag.muted-tag { background: #4b4237; color: var(--gold-soft); }
+.tag.muted-tag { background: #4b4237; color: var(--gold-soft); }
 .tag.danger { background: var(--lose); color: #2a0d0d; }
 .won {
   margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums;
@@ -979,11 +979,6 @@ img.avatar { object-fit: cover; }
 }
 .pt-winner.you { border-color: var(--gold); }
 .pt-winner-name { display: flex; align-items: center; gap: 5px; }
-/* A bot in a prize place wins nothing: the money stays with the house. */
-.pt-winner-won.house {
-  color: var(--muted); font-weight: 700; font-size: 10px;
-  text-transform: uppercase; letter-spacing: 0.06em;
-}
 
 /* ---------- wallet ---------- */
 .wallet { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

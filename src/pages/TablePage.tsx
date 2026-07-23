@@ -81,17 +81,10 @@ function Dealer({ room, seated, youId }: { room: Room; seated: boolean; youId: s
                 }`}
               >
                 <span className="pt-winner-medal">{MEDALS[place - 1] ?? place}</span>
-                <span className="pt-winner-name">
-                  {player.name}
-                  {player.isBot && <span className="tag bot">Bot</span>}
-                </span>
+                <span className="pt-winner-name">{player.name}</span>
                 <span className="pt-winner-total">{player.totalValue}</span>
-                <span className={`pt-winner-won ${player.isBot ? 'house' : ''}`}>
-                  {player.isBot && inTheMoney
-                    ? 'house'
-                    : (player.won ?? 0) > 0
-                      ? `+${stake(room.mode, player.won ?? 0)}`
-                      : '—'}
+                <span className="pt-winner-won">
+                  {(player.won ?? 0) > 0 ? `+${stake(room.mode, player.won ?? 0)}` : '—'}
                 </span>
               </div>
             );
@@ -259,7 +252,6 @@ export function TablePage() {
                         <div className="row-title">
                           {player.name}
                           {player.userId === profile.id && <span className="tag">You</span>}
-                          {player.isBot && <span className="tag bot">Bot</span>}
                         </div>
                         <div className="row-sub">
                           {player.deals.map((d) => d.value).join(' + ')} = <b>{player.totalValue}</b>
